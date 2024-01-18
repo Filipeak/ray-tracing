@@ -18,7 +18,7 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://raytracing.github.io/books/RayTracingTheNextWeek.html
 	- https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html
  - [ ] Illumination: Diffuse, Direct, Global, Specular
- - [ ] PBR
+ - [ ] PBR (Conservation of Energy, ...)
     - https://www.youtube.com/watch?v=7_iy4Rov2Ck&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
 	- https://www.youtube.com/watch?v=AbVfW4X01a0&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=15
 	- https://learnopengl.com/PBR/Theory
