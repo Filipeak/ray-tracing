@@ -22,10 +22,6 @@ struct RayPayload
 struct Material
 {
 	vec3 albedo;
-	float roughness;
-	float metallic;
-	vec3 emissionColor;
-	float emissionPower;
 };
 
 struct SphereData
@@ -37,22 +33,18 @@ struct SphereData
 
 
 #define BOUNCES 5
+#define EPSILON 0.0001f
 
 
 const Material MATERIALS[] = Material[](
-	Material(vec3(1, 0, 1), 1, 0, vec3(0, 0, 0), 0),
-	Material(vec3(0, 1, 1), 1, 0, vec3(0, 0, 0), 0)
+	Material(vec3(1, 0, 1)),
+	Material(vec3(1, 0.5, 0))
 );
 
 const SphereData SPHERES[] = SphereData[](
 	SphereData(vec3(0, 0, 0), 1.0f, 0),
 	SphereData(vec3(0, -101.0f, 0), 100.0f, 1)
 );
-
-
-float rand(float minf, float maxf){
-    return fract(sin(dot(vec2(minf, maxf), vec2(12.9898, 78.233))) * 43758.5453);
-}
 
 
 RayPayload miss(Ray ray)
@@ -68,12 +60,13 @@ RayPayload closestHit(Ray ray, float minT, int sphereIndex)
 	RayPayload payload;
 	payload.sphereIndex = sphereIndex;
 
-	vec3 origin = ray.origin - SPHERES[sphereIndex].origin;
+	vec3 sphereOrigin = SPHERES[sphereIndex].origin;
+	vec3 origin = ray.origin - sphereOrigin;
 
 	payload.position = origin + ray.dir * minT;
 	payload.normal = normalize(payload.position);
 
-	payload.position += SPHERES[sphereIndex].origin;
+	payload.position += sphereOrigin;
 
 	return payload;
 }
@@ -115,10 +108,14 @@ RayPayload traceRay(Ray ray)
 	return closestHit(ray, minT, sphereIndex);
 }
 
-vec4 rayGen(vec3 startPos, vec3 direction)
+vec3 rayGen()
 {
-	vec3 light = vec3(0, 0, 0);
-	vec3 contribution = vec3(1, 1, 1);
+	float aspectRatio = u_Resolution.x / u_Resolution.y;
+	vec2 uv = gl_FragCoord.xy / u_Resolution.xy * 2.0f - 1;
+	uv.x *= aspectRatio;
+
+	vec3 startPos = vec3(0, 0, -2);
+	vec3 direction = vec3(uv, 1);
 
 	for (int i = 0; i < BOUNCES; i++)
 	{
@@ -128,29 +125,25 @@ vec4 rayGen(vec3 startPos, vec3 direction)
 		{
 			vec3 skyColor = vec3(0.5, 0.7, 0.9);
 
-			light += skyColor * contribution;
-
-			break;
+			return skyColor;
 		}
 
 		Material material = MATERIALS[SPHERES[payload.sphereIndex].materialIndex];
+		vec3 lightDir = vec3(-1,-1,1);
 
-		light += material.emissionColor * material.emissionPower;
-		contribution *= material.albedo;
+		float d = max(dot(payload.normal, -lightDir), 0);
 
-		startPos = payload.position + payload.normal * 0.0001f;
-		direction = reflect(direction, payload.normal + material.roughness * vec3(rand(-0.5f, 0.5f), rand(-0.5f, 0.5f), rand(-0.5f, 0.5f)));
+		return material.albedo * d;
+
+		startPos = payload.position + payload.normal * EPSILON;
+		direction = reflect(direction, payload.normal);
 	}
 
-	return vec4(light, 1);
+	return vec3(0,0,0);
 }
 
 
 void main()
 {
-	float aspectRatio = u_Resolution.x / u_Resolution.y;
-	vec2 uv = gl_FragCoord.xy / u_Resolution.xy * 2.0f - 1;
-	uv.x *= aspectRatio;
-
-	FragColor = rayGen(vec3(0, 0, -2), vec3(uv, 1));
+	FragColor = vec4(rayGen(), 1);
 }
