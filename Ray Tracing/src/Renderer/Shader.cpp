@@ -139,7 +139,7 @@ GLint Shader::GetUniformLocation(std::string name)
 
 		if (location == -1)
 		{
-			std::cout << "ERROR: Uniform invalid location!" << std::endl;
+			std::cout << "ERROR: Uniform invalid location: " << name << std::endl;
 
 			return -1;
 		}

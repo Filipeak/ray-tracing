@@ -1,6 +1,7 @@
 ﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <chrono>
 
 #include "Renderer/VertexArray.h"
 #include "Renderer/VertexBuffer.h"
@@ -20,7 +21,7 @@ int main()
 		return -1;
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -69,8 +70,15 @@ int main()
 	shader.Bind();
 	shader.SetUniform2f("u_Resolution", WIDTH, HEIGHT);
 
+	auto startTime = std::chrono::high_resolution_clock::now();
+
 	while (!glfwWindowShouldClose(window))
 	{
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> fsec = currentTime - startTime;
+
+		//shader.SetUniform1f("u_Time", fsec.count());
+
 		OPENGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 		OPENGL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 
