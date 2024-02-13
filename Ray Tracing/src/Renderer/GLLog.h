@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#define OPENGL_CALL(x) OpenGLLog::ClearError(); x; assert(OpenGLLog::CheckError(#x, __FILE__, __LINE__))
+#define OPENGL_CALL(x) OpenGLLog::ClearError(); x; if (!OpenGLLog::CheckError(#x, __FILE__, __LINE__)) { assert(false); }
 
 class OpenGLLog
 {

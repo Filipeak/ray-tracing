@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -128,7 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -159,14 +159,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui\imgui.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui\imgui_demo.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui\imgui_draw.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui\imgui_tables.cpp" />
+    <ClCompile Include="dependencies\imgui\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\GUI\GUI.cpp" />
+    <ClCompile Include="src\GUI\StatsWindow.cpp" />
+    <ClCompile Include="src\Core\main.cpp" />
     <ClCompile Include="dependencies\glad\src\glad.c" />
     <ClCompile Include="dependencies\glm\glm\detail\glm.cpp" />
+    <ClCompile Include="src\Renderer\Camera.cpp" />
+    <ClCompile Include="src\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\Renderer\GLLog.cpp" />
+    <ClCompile Include="src\Renderer\RTRenderer.cpp" />
     <ClCompile Include="src\Renderer\Shader.cpp" />
     <ClCompile Include="src\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Renderer\VertexBuffer.cpp" />
+    <ClCompile Include="src\Renderer\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dependencies\glad\include\glad\glad.h" />
@@ -455,15 +468,31 @@
     <ClInclude Include="dependencies\glm\glm\vec3.hpp" />
     <ClInclude Include="dependencies\glm\glm\vec4.hpp" />
     <ClInclude Include="dependencies\glm\glm\vector_relational.hpp" />
+    <ClInclude Include="dependencies\imgui\imgui\imconfig.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imgui.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imgui_internal.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imstb_rectpack.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imstb_textedit.h" />
+    <ClInclude Include="dependencies\imgui\imgui\imstb_truetype.h" />
+    <ClInclude Include="src\Core\Config.h" />
+    <ClInclude Include="src\GUI\GUI.h" />
+    <ClInclude Include="src\GUI\StatsWindow.h" />
+    <ClInclude Include="src\Renderer\Camera.h" />
+    <ClInclude Include="src\Renderer\Framebuffer.h" />
     <ClInclude Include="src\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\Renderer\GLLog.h" />
+    <ClInclude Include="src\Renderer\RTRenderer.h" />
     <ClInclude Include="src\Renderer\Shader.h" />
     <ClInclude Include="src\Renderer\VertexArray.h" />
     <ClInclude Include="src\Renderer\VertexBuffer.h" />
+    <ClInclude Include="src\Renderer\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\fragment.glsl" />
-    <None Include="shaders\vertex.glsl" />
+    <None Include="shaders\rt.frag" />
+    <None Include="shaders\rt.vert" />
     <None Include="dependencies\glm\glm\detail\func_common.inl" />
     <None Include="dependencies\glm\glm\detail\func_common_simd.inl" />
     <None Include="dependencies\glm\glm\detail\func_exponential.inl" />

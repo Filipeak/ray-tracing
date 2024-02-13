@@ -5,41 +5,26 @@
 
 Shader::Shader(std::string vertexShaderPath, std::string fragmentShaderPath)
 {
-	GLuint vertexShader = CompileShader(vertexShaderPath, true);
-	GLuint fragmentShader = CompileShader(fragmentShaderPath, false);
+	m_VertexShaderPath = vertexShaderPath;
+	m_FragmentShaderPath = fragmentShaderPath;
 
-	OPENGL_CALL(m_ID = glCreateProgram());
-
-	OPENGL_CALL(glAttachShader(m_ID, vertexShader));
-	OPENGL_CALL(glAttachShader(m_ID, fragmentShader));
-
-	OPENGL_CALL(glLinkProgram(m_ID));
-	OPENGL_CALL(glValidateProgram(m_ID));
-
-	GLint result;
-	OPENGL_CALL(glGetProgramiv(m_ID, GL_LINK_STATUS, &result));
-
-	if (result == GL_FALSE)
-	{
-		char message[512] = {};
-		OPENGL_CALL(glGetProgramInfoLog(m_ID, 512, NULL, (GLchar*)message));
-
-		std::cout << "ERROR: Failed to link shader program!" << std::endl;
-		std::cout << message;
-
-		return;
-	}
-
-	OPENGL_CALL(glDetachShader(m_ID, vertexShader));
-	OPENGL_CALL(glDetachShader(m_ID, fragmentShader));
-
-	OPENGL_CALL(glDeleteShader(vertexShader));
-	OPENGL_CALL(glDeleteShader(fragmentShader));
+	LinkShaderProgram();
 }
 
 Shader::~Shader()
 {
-	OPENGL_CALL(glDeleteProgram(m_ID));
+	DeleteShaderProgram();
+}
+
+void Shader::Reload()
+{
+	m_UniformsMap.clear();
+
+	DeleteShaderProgram();
+	LinkShaderProgram();
+	Bind();
+
+	std::cout << "Reloaded shader!" << std::endl;
 }
 
 void Shader::Bind()
@@ -72,6 +57,40 @@ void Shader::SetUniform4f(std::string name, float v1, float v2, float v3, float 
 	OPENGL_CALL(glUniform4f(GetUniformLocation(name), v1, v2, v3, v4));
 }
 
+void Shader::LinkShaderProgram()
+{
+	GLuint vertexShader = CompileShader(m_VertexShaderPath, true);
+	GLuint fragmentShader = CompileShader(m_FragmentShaderPath, false);
+
+	OPENGL_CALL(m_ID = glCreateProgram());
+
+	OPENGL_CALL(glAttachShader(m_ID, vertexShader));
+	OPENGL_CALL(glAttachShader(m_ID, fragmentShader));
+
+	OPENGL_CALL(glLinkProgram(m_ID));
+	OPENGL_CALL(glValidateProgram(m_ID));
+
+	GLint result;
+	OPENGL_CALL(glGetProgramiv(m_ID, GL_LINK_STATUS, &result));
+
+	if (result == GL_FALSE)
+	{
+		char message[512] = {};
+		OPENGL_CALL(glGetProgramInfoLog(m_ID, 512, NULL, (GLchar*)message));
+
+		std::cout << "ERROR: Failed to link shader program!" << std::endl;
+		std::cout << message;
+
+		return;
+	}
+
+	OPENGL_CALL(glDetachShader(m_ID, vertexShader));
+	OPENGL_CALL(glDetachShader(m_ID, fragmentShader));
+
+	OPENGL_CALL(glDeleteShader(vertexShader));
+	OPENGL_CALL(glDeleteShader(fragmentShader));
+}
+
 GLuint Shader::CompileShader(std::string path, bool isVertex)
 {
 	std::string content = GetFileContent(path);
@@ -99,6 +118,11 @@ GLuint Shader::CompileShader(std::string path, bool isVertex)
 	}
 
 	return shader;
+}
+
+void Shader::DeleteShaderProgram()
+{
+	OPENGL_CALL(glDeleteProgram(m_ID));
 }
 
 std::string Shader::GetFileContent(std::string path)
@@ -145,7 +169,7 @@ GLint Shader::GetUniformLocation(std::string name)
 		}
 
 		m_UniformsMap[name] = location;
-
+		
 		return location;
 	}
 }
