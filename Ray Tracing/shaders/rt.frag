@@ -140,10 +140,7 @@ vec3 calculateIllumination(Material material, vec3 position, vec3 normal, vec3 v
 		float spec = pow(max(dot(normal, halfwayDir), 0), material.shininess);
 		vec3 specular = lightColor * spec * material.specular;
 
-		float dist = length(POINT_LIGHTS[i].position - position);
-		float attenuation = 1.0 / (0.5f + 0.3f * dist + 0.1f * dist * dist);
-
-		result += (0.2f * ambient + 1.0f * diffuse + 0.5f * specular) * attenuation;
+		result += 0.2f * ambient + 1.0f * diffuse + 0.5f * specular;
 	}
 
 	return result;
@@ -164,6 +161,11 @@ RayPayload closestHit(Ray ray, float minT, int sphereIndex)
 	payload.sphereIndex = sphereIndex;
 	payload.position = ray.origin + ray.dir * minT;
 	payload.normal = (payload.position - SPHERES[sphereIndex].origin) / SPHERES[sphereIndex].radius;
+
+	if (dot(ray.dir, payload.normal) > 0)
+	{
+		payload.normal = -payload.normal;
+	}
 
 	return payload;
 }
@@ -190,10 +192,26 @@ RayPayload traceRay(Ray ray)
 
 		float t = (-half_b - sqrt(discriminant)) / a;
 
-		if (t > 0 && t < minT)
+		if (t > 0)
 		{
-			minT = t;
-			sphereIndex = i;
+			if (t < minT)
+			{
+				minT = t;
+				sphereIndex = i;
+			}
+		}
+		else
+		{
+			t = (-half_b + sqrt(discriminant)) / a;
+
+			if (t > 0)
+			{
+				if (t < minT)
+				{
+					minT = t;
+					sphereIndex = i;
+				}
+			}
 		}
 	}
 
@@ -237,7 +255,7 @@ vec3 rayGen(vec2 rayOffset)
 			color += illuminationColor * multiplier;
 
 			startPos = payload.position + payload.normal * EPSILON;
-			direction = reflect(direction, payload.normal + mat.roughness * randomOnHemisphere(payload.normal));
+			direction = reflect(direction, payload.normal) + mat.roughness * randomOnHemisphere(payload.normal);
 		}
 	}
 

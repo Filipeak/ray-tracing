@@ -3,12 +3,13 @@
 ## Overview
 Simple Ray Tracing system made in OpenGL. All logic is written in fragment shader
 
-## Preview
-
 ## Features
 - Ray Tracing Spheres
 - Blinn-Phong Illumination
 - Antialiasing (SSAA)
+
+## Preview
+Currently there is no preview :(
 
 ## Setup
 Project is made in Visual Studio 2022, so just open ```.sln``` file
@@ -22,8 +23,6 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://en.wikipedia.org/wiki/Ray_tracing_(graphics)#/media/File:Ray_Tracing_Illustration_First_Bounce.png
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/adding-reflection-and-refraction.html
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/reflection-refraction-fresnel.html
-  - [ ] Fresnel Effect
-    - https://en.wikipedia.org/wiki/Fresnel_equations
   - [ ] Path Tracing
 	- https://en.wikipedia.org/wiki/Path_tracing
 	- https://en.wikipedia.org/wiki/Ray_tracing_(graphics)#Recursive_ray_tracing_algorithm
@@ -34,14 +33,12 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing/global-illumination-path-tracing-practical-implementation.html
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing/introduction-global-illumination-path-tracing.html
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-overview/light-transport-ray-tracing-whitted.html
-  - [ ] PBR (Conservation of Energy, BRDF, Camera properties, ...)
+  - [ ] PBR (Conservation of Energy, BRDF, Camera properties, Light Intensity - Lux, Candela, Lumen ...)
     - https://www.youtube.com/watch?v=7_iy4Rov2Ck&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
 	- https://www.youtube.com/watch?v=AbVfW4X01a0&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=15
 	- https://learnopengl.com/PBR/Theory
 	- https://www.youtube.com/watch?v=XK_p2MxGBQs
   - [ ] Emissive materials
-  - [ ] Metals
-  - [ ] Dielectrics
 - **Lighting**
   - [X] Illumination (Blinn-Phong Model - Ambient, Diffuse, Specular)
     - https://www.youtube.com/watch?v=YnBhJbQZLuE&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=23
@@ -89,15 +86,19 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
   	- https://www.youtube.com/watch?v=A61S_2swwAc
   	- https://learnopengl.com/Advanced-OpenGL/Framebuffers
   	- https://github.com/carl-vbn/opengl-raytracing/blob/main/src/main.cpp
-  - [ ] Backface culling (Multiple "t" values)
+  - [X] Backface culling (Multiple "t" values)
     - https://raytracing.github.io/books/RayTracingInOneWeekend.html#surfacenormalsandmultipleobjects/frontfacesversusbackfaces
-  - [ ] Camera (Clipping, Viewport, Objects stretching)
+	- https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/single-vs-double-sided-triangle-backface-culling.html
+	- https://stackoverflow.com/questions/20184039/ray-tracing-with-sphere
+  - [ ] Camera (Clipping, Viewport, Objects stretching, FOV)
   	- https://learnopengl.com/Getting-started/Camera
   	- https://www.glfw.org/docs/3.3/input_guide.htmlq
   	- https://www.youtube.com/watch?v=86_pQCKOIPk
   	- https://learnopengl.com/Getting-started/Coordinate-Systems
   	- https://learnopengl.com/Getting-started/Camera
   	- https://www.youtube.com/watch?v=MAJqiDll0a8&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=27
+	- https://stackoverflow.com/questions/15654267/ray-tracer-objects-stretch-when-off-center
+	- https://raytracing.github.io/books/RayTracingInOneWeekend.html#positionablecamera
   - [ ] Acceleration structures - BVH Algorithm / Surface Subdivision / KD Tree
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-acceleration-structure/bounding-volume.html
 	- https://raytracing.github.io/books/RayTracingTheNextWeek.html#boundingvolumehierarchies
