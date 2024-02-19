@@ -38,6 +38,15 @@ struct PointLight
 {
 	vec3 position;
 	vec3 color;
+	float power;
+	vec3 attenuationConstants;
+};
+
+struct DirectionalLight
+{
+	vec3 direction;
+	vec3 color;
+	float power;
 };
 
 
@@ -54,8 +63,8 @@ float randomOffset;
 
 const Material MATERIALS[] = Material[]
 (
-	Material(vec3(1, 0, 1), vec3(1, 1, 1), 4.0f, 0.1f),
-	Material(vec3(1, 0.5, 0), vec3(1, 1, 1), 1.0f, 0.7f)
+	Material(vec3(1, 0, 1), vec3(1, 1, 1), 64.0f, 0.1f),
+	Material(vec3(1, 0.5, 0), vec3(1, 1, 1), 16.0f, 0.7f)
 );
 
 const Sphere SPHERES[] = Sphere[]
@@ -66,7 +75,12 @@ const Sphere SPHERES[] = Sphere[]
 
 const PointLight POINT_LIGHTS[] = PointLight[]
 (
-	PointLight(vec3(1, 1, -2), vec3(1, 1, 1))
+	PointLight(vec3(20, 1, -20), vec3(1, 1, 1), 1.0f, vec3(1.0f, 0.001f, 0.0004f))
+);
+
+const DirectionalLight DIRECTIONAL_LIGHTS[] = DirectionalLight[]
+(
+	DirectionalLight(normalize(vec3(1, -1, 1)), vec3(1, 1, 1), 0.4f)
 );
 
 
@@ -122,25 +136,62 @@ vec3 randomOnHemisphere(vec3 normal)
 }
 
 
+vec3 calculateIlluminationForSingleLight(Material material, vec3 lightColor, float lightPower, vec3 lightDir, vec3 normal)
+{
+	vec3 ambient = lightColor * material.albedo;
+	vec3 diffuse = vec3(0, 0, 0);
+	vec3 specular = vec3(0, 0, 0);
+
+	float diff = dot(normal, lightDir);
+
+	if (diff > 0)
+	{
+		diffuse = lightColor * lightPower * diff * material.albedo;
+
+		vec3 halfwayDir = normalize(lightDir + normal);
+		float specFactor = dot(normal, halfwayDir);
+
+		if (specFactor > 0)
+		{
+			float spec = pow(specFactor, material.shininess);
+
+			specular = lightColor * lightPower * spec * material.specular;
+		}
+	}
+
+	return 0.3f * ambient + 1.0f * diffuse + 0.5f * specular;
+}
+
 vec3 calculateIllumination(Material material, vec3 position, vec3 normal, vec3 viewDir)
 {
 	vec3 result = vec3(0, 0, 0);
 
+	for (int i = 0; i < DIRECTIONAL_LIGHTS.length(); i++)
+	{
+		result += calculateIlluminationForSingleLight(
+			material,
+			DIRECTIONAL_LIGHTS[i].color,
+			DIRECTIONAL_LIGHTS[i].power,
+			-DIRECTIONAL_LIGHTS[i].direction,
+			normal
+		);
+	}
+
 	for (int i = 0; i < POINT_LIGHTS.length(); i++)
 	{
-		vec3 lightColor = POINT_LIGHTS[i].color;
-		vec3 lightDir = normalize(POINT_LIGHTS[i].position - position);
+		vec3 displacement = POINT_LIGHTS[i].position - position;
+		float dist = length(displacement);
+		vec3 lightDir = displacement / dist;
+		vec3 attenuationConstants = POINT_LIGHTS[i].attenuationConstants;
+		float attenuationFactor = (attenuationConstants.x + attenuationConstants.y * dist + attenuationConstants.z * dist * dist);
 
-		vec3 ambient = lightColor * material.albedo;
-
-		float diff = max(dot(normal, lightDir), 0);
-		vec3 diffuse = lightColor * diff * material.albedo;
-
-		vec3 halfwayDir = normalize(lightDir + normal);
-		float spec = pow(max(dot(normal, halfwayDir), 0), material.shininess);
-		vec3 specular = lightColor * spec * material.specular;
-
-		result += 0.2f * ambient + 1.0f * diffuse + 0.5f * specular;
+		result += calculateIlluminationForSingleLight(
+			material,
+			POINT_LIGHTS[i].color,
+			POINT_LIGHTS[i].power,
+			lightDir,
+			normal
+		) / attenuationFactor;
 	}
 
 	return result;

@@ -50,16 +50,19 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
   	- https://www.scratchapixel.com/lessons/3d-basic-rendering/phong-shader-BRDF/phong-illumination-models-brdf.html
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-overview/light-transport-ray-tracing-whitted.html
   - [X] Point Lights
-  - [ ] Directional Lights
-  - [ ] Spot Lights
-    - https://www.youtube.com/watch?v=MAJqiDll0a8&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=26
-  - [ ] Multiple Lights
+  - [X] Directional Lights
+  - [X] Multiple Lights
     - https://learnopengl.com/Lighting/Multiple-lights
-	- https://learnopengl.com/Lighting/Light-casters
 	- https://docs.unity3d.com/Manual/Lighting.html
 	- https://github.com/carl-vbn/opengl-raytracing/blob/main/shaders/fragment.glsl
 	- https://www.youtube.com/watch?v=ToCSRyXva5w&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=25
-  - [ ] Light Attenuation & Power
+  - [X] Light Attenuation & Power
+	- https://learnopengl.com/Lighting/Light-casters
+  - [ ] Shadow Rays
+	- https://github.com/carl-vbn/opengl-raytracing/blob/main/shaders/fragment.glsl#L236C6-L236C31
+  - [ ] Soft shadows
+	- https://www.youtube.com/watch?v=A61S_2swwAc
+	- https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
 - **Post Processing**
   - [ ] Gamma Correction
     - https://learnopengl.com/Advanced-Lighting/Gamma-Correction
@@ -70,9 +73,6 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
     - https://learnopengl.com/Advanced-Lighting/Bloom
     - https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
   - [ ] HDR
-  - [ ] Soft shadows
-	- https://www.youtube.com/watch?v=A61S_2swwAc
-	- https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
   - [X] Antialiasing - SSAA
     - https://raytracing.github.io/books/RayTracingInOneWeekend.html#antialiasing
 	- https://en.wikipedia.org/wiki/Supersampling
