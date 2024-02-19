@@ -64,7 +64,7 @@ float randomOffset;
 const Material MATERIALS[] = Material[]
 (
 	Material(vec3(1, 0, 1), vec3(1, 1, 1), 64.0f, 0.1f),
-	Material(vec3(1, 0.5, 0), vec3(1, 1, 1), 16.0f, 0.7f)
+	Material(vec3(1, 0.5, 0), vec3(1, 1, 1), 32.0f, 0.7f)
 );
 
 const Sphere SPHERES[] = Sphere[]
@@ -159,7 +159,7 @@ vec3 calculateIlluminationForSingleLight(Material material, vec3 lightColor, flo
 		}
 	}
 
-	return 0.3f * ambient + 1.0f * diffuse + 0.5f * specular;
+	return 0.3f * ambient + 1.0f * diffuse + 0.6f * specular;
 }
 
 vec3 calculateIllumination(Material material, vec3 position, vec3 normal, vec3 viewDir)
