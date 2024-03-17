@@ -17,7 +17,7 @@ GUI::GUI(const Window& window)
 
 	ImGui::StyleColorsDark();
 
-	ImGui_ImplGlfw_InitForOpenGL(window.GetWindow(), true);
+	ImGui_ImplGlfw_InitForOpenGL(window.GetWindowHandle(), true);
 	ImGui_ImplOpenGL3_Init(GLSL_VERSION);
 }
 

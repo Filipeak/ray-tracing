@@ -12,12 +12,21 @@ public:
 	bool ShouldUpdate();
 	void SwapBuffers();
 
-	GLFWwindow* GetWindow() const;
-	const int& GetWidth() const;
-	const int& GetHeight() const;
+	GLFWwindow* GetWindowHandle() const;
+	const int& GetViewportWidth() const;
+	const int& GetViewportHeight() const;
+	float GetDeltaTime() const;
+	bool ViewportChanged() const;
 
 private:
 	GLFWwindow* m_Window;
 	int m_Width;
 	int m_Height;
+	double m_LastTime;
+	double m_DeltaTime;
+	bool m_ViewportChanged;
+	int m_LastWidth;
+	int m_LastHeight;
+
+	void PrintInfo() const;
 };

@@ -18,12 +18,12 @@ public:
 	void Render();
 
 private:
-	std::chrono::steady_clock::time_point m_StartTime;
+	const Window& m_Window;
 	VertexArray* m_VertexArray;
 	VertexBuffer* m_VertexBuffer;
 	IndexBuffer* m_IndexBuffer;
 	Shader* m_Shader;
-	const Window& m_Window;
 	bool m_ReloadKeyPressTest;
-	Camera m_Camera;
+	Camera* m_Camera;
+	std::chrono::steady_clock::time_point m_StartTime;
 };

@@ -10,5 +10,6 @@
 
 #define VSYNC 0
 
-#define CAMERA_SPEED 10.0f
-#define CAMERA_SENS 5.0f
+#define CAMERA_SPEED 5.0f
+#define CAMERA_SENS 3.5f
+#define CAMERA_FOV 60.0f

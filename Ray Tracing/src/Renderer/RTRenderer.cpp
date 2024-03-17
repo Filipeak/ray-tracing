@@ -1,7 +1,8 @@
 #include "RTRenderer.h"
 #include "GLLog.h"
+#include "../Core/Config.h"
 
-RTRenderer::RTRenderer(const Window& window) : m_Window(window), m_ReloadKeyPressTest(false), m_Camera()
+RTRenderer::RTRenderer(const Window& window) : m_Window(window), m_ReloadKeyPressTest(false)
 {
 	float vertices[] = {
 		-1.0f, -1.0f, 0.0f,
@@ -25,6 +26,8 @@ RTRenderer::RTRenderer(const Window& window) : m_Window(window), m_ReloadKeyPres
 	m_Shader = new Shader("shaders/rt.vert", "shaders/rt.frag");
 	m_Shader->Bind();
 
+	m_Camera = new Camera(window, CAMERA_FOV, 0.3f, 1000.0f, CAMERA_SPEED, CAMERA_SENS);
+
 	m_StartTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -34,11 +37,12 @@ RTRenderer::~RTRenderer()
 	delete m_VertexBuffer;
 	delete m_IndexBuffer;
 	delete m_Shader;
+	delete m_Camera;
 }
 
 void RTRenderer::Update()
 {
-	if (glfwGetKey(m_Window.GetWindow(), GLFW_KEY_R) == GLFW_PRESS)
+	if (glfwGetKey(m_Window.GetWindowHandle(), GLFW_KEY_R) == GLFW_PRESS)
 	{
 		if (!m_ReloadKeyPressTest)
 		{
@@ -52,16 +56,18 @@ void RTRenderer::Update()
 		m_ReloadKeyPressTest = false;
 	}
 
-	m_Camera.Update(m_Window);
+	m_Camera->Update();
 }
 
 void RTRenderer::Render()
 {
 	std::chrono::duration<float> fsec = std::chrono::high_resolution_clock::now() - m_StartTime;
 
-	m_Shader->SetUniform2f("u_Resolution", (float)m_Window.GetWidth(), (float)m_Window.GetHeight());
+	m_Shader->SetUniform2f("u_Resolution", (float)m_Window.GetViewportWidth(), (float)m_Window.GetViewportHeight());
 	m_Shader->SetUniform1f("u_Time", fsec.count());
-	m_Shader->SetUniform3f("u_CameraPos", m_Camera.GetPos().x, m_Camera.GetPos().y, m_Camera.GetPos().z);
+	m_Shader->SetUniformVec3("u_CameraPosition", m_Camera->GetPosition());
+	m_Shader->SetUniformMat4x4("u_CameraInverseProjection", m_Camera->GetInverseProjectionMatrix());
+	m_Shader->SetUniformMat4x4("u_CameraInverseView", m_Camera->GetInverseViewMatrix());
 
 	OPENGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 	OPENGL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));

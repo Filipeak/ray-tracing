@@ -15,6 +15,11 @@ Currently there is no preview :(
 Project is made in Visual Studio 2022, so just open ```.sln``` file
 
 ## TODO / Ideas (with Resources)
+- [ ] Random
+- [ ] Framebuffers
+- [ ] Shadows
+- [ ] CHECK t distance (normalize, length, etc...)
+
 - **Ray Tracing**
   - [X] Reflections
 	- https://en.wikipedia.org/wiki/Ray_tracing_(graphics)#/media/File:Ray_Tracing_Illustration_First_Bounce.png
@@ -39,6 +44,8 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://learnopengl.com/PBR/Theory
 	- https://www.youtube.com/watch?v=XK_p2MxGBQs
   - [ ] Emissive materials
+  - [ ] Metallic materials (Specular config)
+	- https://www.youtube.com/watch?v=9RHGLZLUuwc
 - **Lighting**
   - [X] Illumination (Blinn-Phong Model - Ambient, Diffuse, Specular)
     - https://www.youtube.com/watch?v=YnBhJbQZLuE&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=23
@@ -58,7 +65,7 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://www.youtube.com/watch?v=ToCSRyXva5w&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=25
   - [X] Light Attenuation & Power
 	- https://learnopengl.com/Lighting/Light-casters
-  - [ ] Shadow Rays
+  - [ ] Shadow Rays (Directional light) - Backfaces (lighting inside)
 	- https://github.com/carl-vbn/opengl-raytracing/blob/main/shaders/fragment.glsl#L236C6-L236C31
   - [ ] Soft shadows
 	- https://www.youtube.com/watch?v=A61S_2swwAc
@@ -73,13 +80,10 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
     - https://learnopengl.com/Advanced-Lighting/Bloom
     - https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
   - [ ] HDR
+	- https://learnopengl.com/Advanced-Lighting/HDR
   - [X] Antialiasing - SSAA
     - https://raytracing.github.io/books/RayTracingInOneWeekend.html#antialiasing
 	- https://en.wikipedia.org/wiki/Supersampling
-  - [ ] Antialiasing - MSAA
-	- https://en.wikipedia.org/wiki/Multisample_anti-aliasing
-  - [ ] Antialiasing - FXAA
-    - https://en.wikipedia.org/wiki/Fast_approximate_anti-aliasing
 - **Utility**
   - [ ] Progressive Rendering / Accumulation (Monte Carlo), Maybe add postprocessing shader?
     - https://www.youtube.com/watch?v=46ddlUImiQA&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
@@ -90,15 +94,20 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
     - https://raytracing.github.io/books/RayTracingInOneWeekend.html#surfacenormalsandmultipleobjects/frontfacesversusbackfaces
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/single-vs-double-sided-triangle-backface-culling.html
 	- https://stackoverflow.com/questions/20184039/ray-tracing-with-sphere
-  - [ ] Camera (Clipping, Viewport, Objects stretching, FOV)
+  - [X] Camera (Clipping, Viewport, Objects stretching, FOV)
   	- https://learnopengl.com/Getting-started/Camera
-  	- https://www.glfw.org/docs/3.3/input_guide.htmlq
+	- https://www.youtube.com/watch?v=lXlXqUEEJ94&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=6
+	- https://github.com/TheCherno/RayTracing/blob/master/RayTracing/src/Camera.cpp
+	- https://stackoverflow.com/questions/2354821/raycasting-how-to-properly-apply-a-projection-matrix
+	- https://gamedev.stackexchange.com/questions/112673/inverse-of-perspective-matrix-for-what
   	- https://www.youtube.com/watch?v=86_pQCKOIPk
   	- https://learnopengl.com/Getting-started/Coordinate-Systems
-  	- https://learnopengl.com/Getting-started/Camera
   	- https://www.youtube.com/watch?v=MAJqiDll0a8&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=27
-	- https://stackoverflow.com/questions/15654267/ray-tracer-objects-stretch-when-off-center
 	- https://raytracing.github.io/books/RayTracingInOneWeekend.html#positionablecamera
+  - [ ] New Random System
+	- https://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/
+	- https://www.reedbeta.com/blog/hash-functions-for-gpu-rendering/
+	- https://www.youtube.com/watch?v=5_RAHZQCPjE
   - [ ] Acceleration structures - BVH Algorithm / Surface Subdivision / KD Tree
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-acceleration-structure/bounding-volume.html
 	- https://raytracing.github.io/books/RayTracingTheNextWeek.html#boundingvolumehierarchies
@@ -106,7 +115,11 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
   - [ ] Denoising
 	- https://www.youtube.com/watch?v=6O2B9BZiZjQ
   - [ ] Premake / CMake
+  - [ ] Boxes
+  - [ ] Signed Distance Function (SDF)
+	- https://en.wikipedia.org/wiki/Signed_distance_function
 - **Technical**
   - [ ] DLSS
-  - [ ] CUDA / OptiX - Path Tracing, Mesh Ray Tracing
+  - [ ] CUDA / OptiX
+  - [ ] Compute Shaders
   - [ ] DirectX 11, 12 / Vulkan

@@ -3,7 +3,7 @@
 #include "../Core/Config.h"
 #include <iostream>
 
-Window::Window() : m_Window(0), m_Width(0), m_Height(0)
+Window::Window() : m_Window(0), m_Width(0), m_Height(0), m_LastTime(0), m_DeltaTime(0), m_ViewportChanged(false), m_LastWidth(0), m_LastHeight(0)
 {
 	if (!glfwInit())
 	{
@@ -37,10 +37,7 @@ Window::Window() : m_Window(0), m_Width(0), m_Height(0)
 		return;
 	}
 
-	std::cout << "OpenGL Info:" << std::endl;
-	std::cout << "> Vendor: " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "> Renderer: " << glGetString(GL_RENDERER) << std::endl;
-	std::cout << "> Version: " << glGetString(GL_VERSION) << std::endl;
+	PrintInfo();
 }
 
 Window::~Window()
@@ -57,6 +54,15 @@ bool Window::ShouldUpdate()
 
 		OPENGL_CALL(glViewport(0, 0, m_Width, m_Height));
 
+		m_ViewportChanged = false;
+
+		if (m_LastWidth != m_Width || m_LastHeight != m_Height)
+		{
+			m_ViewportChanged = true;
+			m_LastWidth = m_Width;
+			m_LastHeight = m_Height;
+		}
+
 		return true;
 	}
 	else
@@ -67,21 +73,42 @@ bool Window::ShouldUpdate()
 
 void Window::SwapBuffers()
 {
+	m_DeltaTime = glfwGetTime() - m_LastTime;
+	m_LastTime = glfwGetTime();
+
 	glfwSwapBuffers(m_Window);
 	glfwPollEvents();
 }
 
-GLFWwindow* Window::GetWindow() const
+GLFWwindow* Window::GetWindowHandle() const
 {
 	return m_Window;
 }
 
-const int& Window::GetWidth() const
+const int& Window::GetViewportWidth() const
 {
 	return m_Width;
 }
 
-const int& Window::GetHeight() const
+const int& Window::GetViewportHeight() const
 {
 	return m_Height;
+}
+
+float Window::GetDeltaTime() const
+{
+	return (float)m_DeltaTime;
+}
+
+bool Window::ViewportChanged() const
+{
+	return m_ViewportChanged;
+}
+
+void Window::PrintInfo() const
+{
+	std::cout << "OpenGL Info:" << std::endl;
+	std::cout << "> Vendor: " << glGetString(GL_VENDOR) << std::endl;
+	std::cout << "> Renderer: " << glGetString(GL_RENDERER) << std::endl;
+	std::cout << "> Version: " << glGetString(GL_VERSION) << std::endl;
 }

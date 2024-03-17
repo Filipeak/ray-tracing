@@ -1,12 +1,9 @@
 #version 430 core
 
 
-#define BOUNCES 5
+#define BOUNCES 10
 #define SAMPLES 1
 #define EPSILON 0.0001f
-#define LIGHT_AMBIENT_FACTOR 0.3f
-#define LIGHT_DIFFUSE_FACTOR 1.0f
-#define LIGHT_SPECULAR_FACTOR 0.6f
 
 
 struct Ray
@@ -37,6 +34,14 @@ struct Sphere
 	int materialIndex;
 };
 
+struct PointLight
+{
+	vec3 position;
+	vec3 color;
+	float power;
+	vec3 attenuationConstants;
+};
+
 struct DirectionalLight
 {
 	vec3 direction;
@@ -50,9 +55,7 @@ layout(location = 0) out vec4 FragColor;
 
 uniform vec2 u_Resolution;
 uniform float u_Time;
-uniform vec3 u_CameraPosition;
-uniform mat4x4 u_CameraInverseProjection;
-uniform mat4x4 u_CameraInverseView;
+uniform vec3 u_CameraPos;
 
 
 float randomOffset;
@@ -70,12 +73,15 @@ const Sphere SPHERES[] = Sphere[]
 	Sphere(vec3(0, -101.0f, 0), 100.0f, 1)
 );
 
-const DirectionalLight DIRECTIONAL_LIGHTS[] = DirectionalLight[]
+const PointLight POINT_LIGHTS[] = PointLight[]
 (
-	DirectionalLight(normalize(vec3(0, -1, 1)), vec3(1, 1, 1), 1.0f)
+	PointLight(vec3(20, 1, -20), vec3(1, 1, 1), 1.0f, vec3(1.0f, 0.001f, 0.0004f))
 );
 
-const vec3 SKYBOX_COLOR = vec3(0.5f, 0.7f, 0.9f);
+const DirectionalLight DIRECTIONAL_LIGHTS[] = DirectionalLight[]
+(
+	DirectionalLight(normalize(vec3(1, -1, 1)), vec3(1, 1, 1), 0.4f)
+);
 
 
 uint hash(uint x)
@@ -153,7 +159,7 @@ vec3 calculateIlluminationForSingleLight(Material material, vec3 lightColor, flo
 		}
 	}
 
-	return LIGHT_AMBIENT_FACTOR * ambient + LIGHT_DIFFUSE_FACTOR * diffuse + LIGHT_SPECULAR_FACTOR * specular;
+	return 0.3f * ambient + 1.0f * diffuse + 0.6f * specular;
 }
 
 vec3 calculateIllumination(Material material, vec3 position, vec3 normal, vec3 viewDir)
@@ -169,6 +175,23 @@ vec3 calculateIllumination(Material material, vec3 position, vec3 normal, vec3 v
 			-DIRECTIONAL_LIGHTS[i].direction,
 			normal
 		);
+	}
+
+	for (int i = 0; i < POINT_LIGHTS.length(); i++)
+	{
+		vec3 displacement = POINT_LIGHTS[i].position - position;
+		float dist = length(displacement);
+		vec3 lightDir = displacement / dist;
+		vec3 attenuationConstants = POINT_LIGHTS[i].attenuationConstants;
+		float attenuationFactor = (attenuationConstants.x + attenuationConstants.y * dist + attenuationConstants.z * dist * dist);
+
+		result += calculateIlluminationForSingleLight(
+			material,
+			POINT_LIGHTS[i].color,
+			POINT_LIGHTS[i].power,
+			lightDir,
+			normal
+		) / attenuationFactor;
 	}
 
 	return result;
@@ -253,10 +276,12 @@ RayPayload traceRay(Ray ray)
 
 vec3 rayGen(vec2 rayOffset)
 {
-	vec2 coord = (gl_FragCoord.xy + rayOffset) / u_Resolution.xy * 2.0f - 1;
-	vec4 target = u_CameraInverseProjection * vec4(coord.x, coord.y, 1, 1);
-	vec3 viewDir = vec3(u_CameraInverseView * vec4(normalize(vec3(target) / target.w), 0));
-	vec3 startPos = u_CameraPosition;
+	float aspectRatio = u_Resolution.x / u_Resolution.y;
+	vec2 uv = (gl_FragCoord.xy + rayOffset) / u_Resolution.xy * 2.0f - 1;
+	uv.x *= aspectRatio;
+	vec3 viewDir = normalize(vec3(uv, 1));
+
+	vec3 startPos = u_CameraPos;
 	vec3 direction = viewDir;
 
 	vec3 color = vec3(0, 0, 0);
@@ -268,7 +293,7 @@ vec3 rayGen(vec2 rayOffset)
 
 		if (payload.sphereIndex < 0)
 		{
-			color += SKYBOX_COLOR * multiplier;
+			color += vec3(0.5, 0.7, 0.9) * multiplier;
 
 			break;
 		}

@@ -37,24 +37,39 @@ void Shader::Unbind()
 	OPENGL_CALL(glUseProgram(0));
 }
 
-void Shader::SetUniform1f(std::string name, float v1)
+void Shader::SetUniform1f(const std::string& name, float v1)
 {
 	OPENGL_CALL(glUniform1f(GetUniformLocation(name), v1));
 }
 
-void Shader::SetUniform2f(std::string name, float v1, float v2)
+void Shader::SetUniform2f(const std::string& name, float v1, float v2)
 {
 	OPENGL_CALL(glUniform2f(GetUniformLocation(name), v1, v2));
 }
 
-void Shader::SetUniform3f(std::string name, float v1, float v2, float v3)
+void Shader::SetUniform3f(const std::string& name, float v1, float v2, float v3)
 {
 	OPENGL_CALL(glUniform3f(GetUniformLocation(name), v1, v2, v3));
 }
 
-void Shader::SetUniform4f(std::string name, float v1, float v2, float v3, float v4)
+void Shader::SetUniform4f(const std::string& name, float v1, float v2, float v3, float v4)
 {
 	OPENGL_CALL(glUniform4f(GetUniformLocation(name), v1, v2, v3, v4));
+}
+
+void Shader::SetUniformVec3(const std::string& name, const glm::vec3& vec)
+{
+	OPENGL_CALL(glUniform3f(GetUniformLocation(name), vec.x, vec.y, vec.z));
+}
+
+void Shader::SetUniformMat3x3(const std::string& name, const glm::mat3x3& mat)
+{
+	OPENGL_CALL(glUniformMatrix3fv(GetUniformLocation(name), 1, GL_FALSE, &mat[0][0]));
+}
+
+void Shader::SetUniformMat4x4(const std::string& name, const glm::mat4x4& mat)
+{
+	OPENGL_CALL(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &mat[0][0]));
 }
 
 void Shader::LinkShaderProgram()
@@ -151,7 +166,7 @@ std::string Shader::GetFileContent(std::string path)
 	}
 }
 
-GLint Shader::GetUniformLocation(std::string name)
+GLint Shader::GetUniformLocation(const std::string& name)
 {
 	if (m_UniformsMap.find(name) != m_UniformsMap.end())
 	{
@@ -169,7 +184,7 @@ GLint Shader::GetUniformLocation(std::string name)
 		}
 
 		m_UniformsMap[name] = location;
-		
+
 		return location;
 	}
 }
