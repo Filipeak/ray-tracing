@@ -57,6 +57,11 @@ void Shader::SetUniform4f(const std::string& name, float v1, float v2, float v3,
 	OPENGL_CALL(glUniform4f(GetUniformLocation(name), v1, v2, v3, v4));
 }
 
+void Shader::SetUniform1ui(const std::string& name, uint32_t v1)
+{
+	OPENGL_CALL(glUniform1ui(GetUniformLocation(name), v1));
+}
+
 void Shader::SetUniformVec3(const std::string& name, const glm::vec3& vec)
 {
 	OPENGL_CALL(glUniform3f(GetUniformLocation(name), vec.x, vec.y, vec.z));

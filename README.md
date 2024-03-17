@@ -15,7 +15,6 @@ Currently there is no preview :(
 Project is made in Visual Studio 2022, so just open ```.sln``` file
 
 ## TODO / Ideas (with Resources)
-- [ ] Random
 - [ ] Framebuffers
 - [ ] Shadows
 - [ ] CHECK t distance (normalize, length, etc...)
@@ -104,9 +103,8 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
   	- https://learnopengl.com/Getting-started/Coordinate-Systems
   	- https://www.youtube.com/watch?v=MAJqiDll0a8&list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA&index=27
 	- https://raytracing.github.io/books/RayTracingInOneWeekend.html#positionablecamera
-  - [ ] New Random System
-	- https://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/
-	- https://www.reedbeta.com/blog/hash-functions-for-gpu-rendering/
+  - [X] Random System
+	- https://stackoverflow.com/a/17479300/14697550
 	- https://www.youtube.com/watch?v=5_RAHZQCPjE
   - [ ] Acceleration structures - BVH Algorithm / Surface Subdivision / KD Tree
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-acceleration-structure/bounding-volume.html

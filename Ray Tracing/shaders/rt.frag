@@ -91,6 +91,8 @@ uint hash(uint x)
 
 float random01()
 {
+	randomOffset++;
+
 	uvec4 v = floatBitsToUint(vec4(gl_FragCoord.xy, u_Time, randomOffset));
 	uint m = hash(v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w)); 
 
@@ -101,8 +103,6 @@ float random01()
     m |= ieeeOne;
 
     float f = uintBitsToFloat(m);
-
-	randomOffset++;
 
     return f - 1.0;
 }
@@ -282,6 +282,7 @@ vec3 rayGen(vec2 rayOffset)
 
 			startPos = payload.position + payload.normal * EPSILON;
 			direction = reflect(direction, payload.normal) + mat.roughness * randomOnHemisphere(payload.normal);
+			//direction = reflect(direction, payload.normal) + mat.roughness * randomOnUnitSphere();
 		}
 	}
 

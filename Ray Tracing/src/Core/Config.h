@@ -12,4 +12,4 @@
 
 #define CAMERA_SPEED 5.0f
 #define CAMERA_SENS 3.5f
-#define CAMERA_FOV 60.0f
+#define CAMERA_FOV 70.0f
