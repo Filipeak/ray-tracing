@@ -7,7 +7,7 @@
 class Camera
 {
 public:
-	Camera(const Window& window, float verticalFOV, float near, float far, float speed, float sensitivity);
+	Camera(const Window& window, glm::vec3 startPosition, glm::vec2 startRotation, float verticalFOV, float near, float far, float speed, float sensitivity);
 
 	void Update();
 
@@ -25,13 +25,16 @@ private:
 
 	glm::mat4x4 m_InverseProjection { 1.0f };
 	glm::mat4x4 m_InverseView { 1.0f };
-	glm::vec3 m_Position { 0.0f, 0.0f, -5.0f };
+	glm::vec3 m_Position { 0.0f, 0.0f, 0.0f };
 	glm::vec2 m_Rotation { 0.0f, 0.0f };
-	glm::vec3 m_ForwardDirection { 0.0f, 0.0f, 1.0f };
-	glm::vec3 m_UpDirection { 0.0f, 1.0f, 0.0f };
+	glm::vec3 m_ForwardDirection { 0.0f, 0.0f, 0.0f };
+	glm::vec3 m_UpDirection { 0.0f, 0.0f, 0.0f };
+	glm::vec3 m_RightDirection { 0.0f, 0.0f, 0.0f };
 	glm::vec2 m_LastMousePosition { 0.0f, 0.0f };
 	bool m_FirstCameraClick { false };
 
-	void TryRecalculateProjection();
+	void RecalculateForwardVector();
+	void RecalculateRightAndUpVectors();
+	void RecalculateProjectionIfAvailable();
 	void RecalculateView();
 };

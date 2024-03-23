@@ -491,6 +491,9 @@
     <ClInclude Include="src\Renderer\Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\pp.frag" />
+    <None Include="shaders\pp.vert" />
+    <None Include="shaders\quad.vert" />
     <None Include="shaders\rt.frag" />
     <None Include="shaders\rt.vert" />
     <None Include="dependencies\glm\glm\detail\func_common.inl" />

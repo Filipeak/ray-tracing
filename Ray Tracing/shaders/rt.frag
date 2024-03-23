@@ -1,12 +1,12 @@
 #version 430 core
 
 
-#define BOUNCES 5
+#define BOUNCES 10
 #define SAMPLES 1
 #define EPSILON 0.0001f
 #define LIGHT_AMBIENT_FACTOR 0.3f
 #define LIGHT_DIFFUSE_FACTOR 1.0f
-#define LIGHT_SPECULAR_FACTOR 0.6f
+#define LIGHT_SPECULAR_FACTOR 0.8f
 
 
 struct Ray
@@ -28,6 +28,7 @@ struct Material
 	vec3 specular;
 	float shininess;
 	float roughness;
+	float emission;
 };
 
 struct Sphere
@@ -45,7 +46,7 @@ struct DirectionalLight
 };
 
 
-layout(location = 0) out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 
 uniform vec2 u_Resolution;
@@ -60,14 +61,20 @@ float randomOffset;
 
 const Material MATERIALS[] = Material[]
 (
-	Material(vec3(1, 0, 1), vec3(1, 1, 1), 64.0f, 0.1f),
-	Material(vec3(1, 0.5, 0), vec3(1, 1, 1), 32.0f, 0.7f)
+	Material(vec3(1, 1, 1), vec3(1, 1, 1), 16.0f, 1.0f, 1.0f),
+	Material(vec3(0.44f, 0.44f, 0.44f), vec3(1, 1, 1), 64.0f, 0.1f, 0.0f),
+	Material(vec3(0, 0, 1), vec3(1, 1, 1), 256.0f, 0.9f, 0.0f),
+	Material(vec3(1, 0, 0), vec3(1, 1, 1), 16.0f, 0.4f, 0.0f),
+	Material(vec3(1, 0.5f, 0), vec3(1, 1, 1), 32.0f, 0.5f, 0.0f)
 );
 
 const Sphere SPHERES[] = Sphere[]
 (
-	Sphere(vec3(0, 0, 0), 1.0f, 0),
-	Sphere(vec3(0, -101.0f, 0), 100.0f, 1)
+	Sphere(vec3(2, 0, 0), 1.0f, 0),
+	Sphere(vec3(-2, 0, 0), 1.0f, 1),
+	Sphere(vec3(0, 0, -3), 1.0f, 2),
+	Sphere(vec3(4, 1, 2), 1.5f, 3),
+	Sphere(vec3(0, -101.0f, 0), 100.0f, 4)
 );
 
 const DirectionalLight DIRECTIONAL_LIGHTS[] = DirectionalLight[]
@@ -78,6 +85,9 @@ const DirectionalLight DIRECTIONAL_LIGHTS[] = DirectionalLight[]
 const vec3 SKYBOX_COLOR = vec3(0.5f, 0.7f, 0.9f);
 
 
+/**
+ * REF: https://stackoverflow.com/a/17479300/14697550
+ */
 uint hash(uint x)
 {
     x += (x << 10u);
@@ -129,7 +139,9 @@ vec3 randomOnHemisphere(vec3 normal)
 	return sign(dot(onUnitSphere, normal)) * onUnitSphere;
 }
 
-
+/**
+ * REF: https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
+ */
 vec3 calculateIlluminationForSingleLight(Material material, vec3 lightColor, float lightPower, vec3 lightDir, vec3 normal)
 {
 	vec3 ambient = lightColor * material.albedo;
@@ -190,6 +202,9 @@ RayPayload closestHit(Ray ray, float minT, int sphereIndex)
 	payload.position = ray.origin + ray.dir * minT;
 	payload.normal = (payload.position - SPHERES[sphereIndex].origin) / SPHERES[sphereIndex].radius;
 
+	// Check for backfaces
+	// REF: https://raytracing.github.io/books/RayTracingInOneWeekend.html#surfacenormalsandmultipleobjects/frontfacesversusbackfaces
+	// REF: https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/single-vs-double-sided-triangle-backface-culling.html
 	if (dot(ray.dir, payload.normal) > 0)
 	{
 		payload.normal = -payload.normal;
@@ -251,16 +266,23 @@ RayPayload traceRay(Ray ray)
 	return closestHit(ray, minT, sphereIndex);
 }
 
+/**
+ * Generation of rays - reflection & refraction (Snell's law & Fresnel equations)
+ * REF: https://en.wikipedia.org/wiki/Ray_tracing_(graphics)#/media/File:Ray_Tracing_Illustration_First_Bounce.png
+ * REF: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/adding-reflection-and-refraction.html
+ * REF: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/reflection-refraction-fresnel.html
+ */
 vec3 rayGen(vec2 rayOffset)
 {
 	vec2 coord = (gl_FragCoord.xy + rayOffset) / u_Resolution.xy * 2.0f - 1;
 	vec4 target = u_CameraInverseProjection * vec4(coord.x, coord.y, 1, 1);
 	vec3 viewDir = vec3(u_CameraInverseView * vec4(normalize(vec3(target) / target.w), 0));
+
 	vec3 startPos = u_CameraPosition;
 	vec3 direction = viewDir;
 
-	vec3 color = vec3(0, 0, 0);
-	float multiplier = 1.0f;
+	vec3 light = vec3(0, 0, 0);
+	vec3 contribution = vec3(1, 1, 1);
 
 	for (int i = 0; i < BOUNCES; i++)
 	{
@@ -268,7 +290,7 @@ vec3 rayGen(vec2 rayOffset)
 
 		if (payload.sphereIndex < 0)
 		{
-			color += SKYBOX_COLOR * multiplier;
+			light += SKYBOX_COLOR * contribution;
 
 			break;
 		}
@@ -277,19 +299,25 @@ vec3 rayGen(vec2 rayOffset)
 			Material mat = MATERIALS[SPHERES[payload.sphereIndex].materialIndex];
 			vec3 illuminationColor = calculateIllumination(mat, payload.position, payload.normal, viewDir);
 
-			multiplier *= 0.5f;
-			color += illuminationColor * multiplier;
+			contribution *= illuminationColor;
+			light += mat.albedo * mat.emission;
 
 			startPos = payload.position + payload.normal * EPSILON;
-			direction = reflect(direction, payload.normal) + mat.roughness * randomOnHemisphere(payload.normal);
-			//direction = reflect(direction, payload.normal) + mat.roughness * randomOnUnitSphere();
+			direction = reflect(direction, payload.normal + mat.roughness * randomOnHemisphere(payload.normal));
 		}
 	}
 
-	return color;
+	return light;
 }
 
 
+/* 
+ * SSAA / Path Tracing implementation
+ * REF: https://raytracing.github.io/books/RayTracingInOneWeekend.html#antialiasing
+ * REF: https://en.wikipedia.org/wiki/Supersampling
+ * REF: https://en.wikipedia.org/wiki/Path_tracing
+ * REF: https://www.youtube.com/watch?v=NIpC53vesHo
+*/
 vec3 samplePixel()
 {
 	vec3 result = vec3(0, 0, 0);
