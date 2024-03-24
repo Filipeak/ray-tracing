@@ -30,7 +30,6 @@ RTRenderer::RTRenderer(const Window& window) : m_Window(window), m_ReloadKeyPres
 	m_Camera = new Camera(window, glm::vec3(0.0f, 0.0f, 5.0f), glm::vec2(0.0f, glm::pi<float>()), CAMERA_FOV, 0.3f, 1000.0f, CAMERA_SPEED, CAMERA_SENS);
 
 	m_Framebuffer = new Framebuffer(window);
-	m_Framebuffer->Unbind();
 
 	m_StartTime = std::chrono::high_resolution_clock::now();
 }
@@ -67,7 +66,7 @@ void RTRenderer::Update()
 
 void RTRenderer::Render()
 {
-	//m_Framebuffer->Bind();
+	m_Framebuffer->Bind();
 
 	std::chrono::duration<float> fsec = std::chrono::high_resolution_clock::now() - m_StartTime;
 
@@ -84,7 +83,7 @@ void RTRenderer::Render()
 	OPENGL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 
 
-	/*m_Framebuffer->Unbind();
+	m_Framebuffer->Unbind();
 
 	m_ScreenShader->Bind();
 	m_Framebuffer->BindTexture();
@@ -92,5 +91,5 @@ void RTRenderer::Render()
 	m_VertexArray->Bind();
 
 	OPENGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
-	OPENGL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));*/
+	OPENGL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 }

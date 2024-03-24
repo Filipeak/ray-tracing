@@ -9,12 +9,14 @@ Simple Ray Tracing system made in OpenGL. All logic is written in fragment shade
 - Antialiasing (SSAA)
 
 ## Preview
-Currently there is no preview :(
+![](https://github.com/Filipeak/ray-tracing/blob/main/assets/Preview.png)
 
 ## Setup
 Project is made in Visual Studio 2022, so just open ```.sln``` file
 
 ## TODO / Ideas (with Resources)
+Next: Post processing
+
 - **Ray Tracing**
   - [ ] Refraction (Snell's Law & Fresnel equations)
 	- https://en.wikipedia.org/wiki/Ray_tracing_(graphics)#/media/File:Ray_Tracing_Illustration_First_Bounce.png
@@ -23,6 +25,7 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://github.com/engilas/raytracing-opengl/blob/master/assets/shaders/rt.frag
 	- https://en.wikipedia.org/wiki/Ray_tracing_(graphics)#Recursive_ray_tracing_algorithm
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-overview/light-transport-ray-tracing-whitted.html
+	- https://raytracing.github.io/books/RayTracingInOneWeekend.html#dielectrics
   - [ ] PBR (Conservation of Energy, BRDF, Camera properties, Light Intensity - Lux, Candela, Lumen ...)
 	- https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html
     - https://www.youtube.com/watch?v=7_iy4Rov2Ck&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
@@ -31,10 +34,10 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://www.youtube.com/watch?v=XK_p2MxGBQs
 	- https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing/global-illumination-path-tracing-practical-implementation.html
+- **Lighting**
   - [ ] Metallic materials (Specular config)
 	- https://www.youtube.com/watch?v=9RHGLZLUuwc
 	- https://www.youtube.com/watch?v=yMRp9DVZYnI time=1:00
-- **Lighting**
   - [ ] Shadow Rays (Directional light) - Backfaces (lighting inside)
 	- https://github.com/carl-vbn/opengl-raytracing/blob/main/shaders/fragment.glsl#L236C6-L236C31
 	- https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows.html
@@ -42,7 +45,7 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://www.youtube.com/watch?v=A61S_2swwAc
 	- https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
 - **Post Processing**
-   - [ ] Progressive Rendering / Accumulation (Monte Carlo), resize callback
+   - [ ] Progressive Rendering / Accumulation, resize callback
     - https://www.youtube.com/watch?v=46ddlUImiQA&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
   	- https://www.youtube.com/watch?v=A61S_2swwAc
 	- https://www.youtube.com/watch?v=QQ3jr-9Rc1o
@@ -50,6 +53,7 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
   	- https://github.com/carl-vbn/opengl-raytracing/blob/main/src/main.cpp
 	- https://github.com/Eduard0110/Path-tracer-using-OpenGL/blob/main/source/Main.cpp
 	- https://github.com/ishaanshah/raytracer/blob/main/src/main.cpp#L181
+	- https://stackoverflow.com/questions/23990366/accumulation-buffer-using-glfw
   - [ ] Screenshots - GUI Button
 	- https://github.com/carl-vbn/opengl-raytracing/blob/main/src/main.cpp#L285
   - [ ] Gamma Correction
@@ -57,6 +61,7 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
   	- https://en.wikipedia.org/wiki/Gamma_correction
   	- https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/usinggammacorrectionforaccuratecolorintensity
 	- https://www.youtube.com/watch?v=wFx0d9c8WMs
+	- https://www.youtube.com/watch?v=op805g4SZgE
   - [ ] Bloom & HDR
     - https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model#Fragment_shader
     - https://learnopengl.com/Advanced-Lighting/Bloom
@@ -81,6 +86,8 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 	- https://raytracing.github.io/books/RayTracingTheNextWeek.html#volumes
   - [ ] FBX Import - Blender 3d Monkey
   - [ ] Change to Left Handed Coordinate System
+	- https://learnopengl.com/Getting-started/Coordinate-Systems
+	- https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry/coordinate-systems.html
   - [ ] Further OpenGL Abstraction
 - **Technical**
   - [ ] DLSS
