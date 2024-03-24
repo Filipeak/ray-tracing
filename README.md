@@ -1,4 +1,4 @@
-# Ray Traacing
+# Ray Tracing
 
 ## Overview
 Simple Ray Tracing system made in OpenGL. All logic is written in fragment shader: ```shaders/rt.frag```
@@ -15,7 +15,7 @@ Simple Ray Tracing system made in OpenGL. All logic is written in fragment shade
 Project is made in Visual Studio 2022, so just open ```.sln``` file
 
 ## TODO / Ideas (with Resources)
-Next: Post processing
+**Next: Post processing**
 
 - **Ray Tracing**
   - [ ] Refraction (Snell's Law & Fresnel equations)
@@ -45,7 +45,7 @@ Next: Post processing
 	- https://www.youtube.com/watch?v=A61S_2swwAc
 	- https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
 - **Post Processing**
-   - [ ] Progressive Rendering / Accumulation, resize callback
+  - [ ] Progressive Rendering / Accumulation, resize callback
     - https://www.youtube.com/watch?v=46ddlUImiQA&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
   	- https://www.youtube.com/watch?v=A61S_2swwAc
 	- https://www.youtube.com/watch?v=QQ3jr-9Rc1o
