@@ -22,6 +22,11 @@ struct RayPayload
 	vec3 normal;
 };
 
+/*
+ * TODO: Metallic materials (Specular config)
+ * - https://www.youtube.com/watch?v=9RHGLZLUuwc
+ * - https://www.youtube.com/watch?v=yMRp9DVZYnI time=1:00
+ */
 struct Material
 {
 	vec3 albedo;
@@ -141,6 +146,15 @@ vec3 randomOnHemisphere(vec3 normal)
 
 /**
  * REF: https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
+ *
+ * TODO: Shadow Rays (Directional light), Lighting inside backfaces
+ * - https://github.com/carl-vbn/opengl-raytracing/blob/main/shaders/fragment.glsl#L236C6-L236C31
+ * - https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows.html
+ *
+ * TODO: Soft shadows
+ * - https://www.youtube.com/watch?v=A61S_2swwAc
+ * - https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
+ * - https://www.youtube.com/watch?v=Rk5nD8tt_W4
  */
 vec3 calculateIlluminationForSingleLight(Material material, vec3 lightColor, float lightPower, vec3 lightDir, vec3 normal)
 {
@@ -213,6 +227,25 @@ RayPayload closestHit(Ray ray, float minT, int sphereIndex)
 	return payload;
 }
 
+/*
+ * TODO: Boxes, quads intersection
+ * - https://raytracing.github.io/books/RayTracingTheNextWeek.html#quadrilaterals
+ *
+ * TODO: FBX Import
+ *
+ * TODO: Cornell Box
+ * - https://raytracing.github.io/books/RayTracingTheNextWeek.html#volumes
+ *
+ * TODO: Acceleration structures - BVH Algorithm / Surface Subdivision / KD Tree
+ * - https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-acceleration-structure/bounding-volume.html
+ * - https://raytracing.github.io/books/RayTracingTheNextWeek.html#boundingvolumehierarchies
+ * - https://www.khronos.org/blog/ray-tracing-in-vulkan#Acceleration_Structures
+ * - https://github.com/ishaanshah/raytracer/tree/main
+ *
+ * TODO: Signed Distance Function (SDF) / Ray Marching
+ * - https://en.wikipedia.org/wiki/Signed_distance_function
+ * - https://www.youtube.com/watch?v=khblXafu7iA
+ */
 RayPayload traceRay(Ray ray)
 {
 	float minT = 99999999;
@@ -267,10 +300,23 @@ RayPayload traceRay(Ray ray)
 }
 
 /**
- * Generation of rays - reflection & refraction (Snell's law & Fresnel equations)
+ * Generation of rays - reflection
+ *
  * REF: https://en.wikipedia.org/wiki/Ray_tracing_(graphics)#/media/File:Ray_Tracing_Illustration_First_Bounce.png
  * REF: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/adding-reflection-and-refraction.html
  * REF: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/reflection-refraction-fresnel.html
+ * REF: https://raytracing.github.io/books/RayTracingInOneWeekend.html#dielectrics
+ *
+ * TODO: Refraction (Snell's law & Fresnel equations)
+ *
+ * TODO: PBR (Conservation of Energy, BRDF, Camera properties, Light Intensity - Lux, Candela, Lumen ...)
+ * - https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html
+ * - https://learnopengl.com/PBR/Theory
+ * - https://www.youtube.com/watch?v=7_iy4Rov2Ck&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=11
+ * - https://www.youtube.com/watch?v=AbVfW4X01a0&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=16
+ * - https://www.youtube.com/watch?v=XK_p2MxGBQs
+ * - https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function
+ * - https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing/global-illumination-path-tracing-practical-implementation.html
  */
 vec3 rayGen(vec2 rayOffset)
 {
@@ -313,6 +359,7 @@ vec3 rayGen(vec2 rayOffset)
 
 /* 
  * SSAA / Path Tracing implementation
+ *
  * REF: https://raytracing.github.io/books/RayTracingInOneWeekend.html#antialiasing
  * REF: https://en.wikipedia.org/wiki/Supersampling
  * REF: https://en.wikipedia.org/wiki/Path_tracing

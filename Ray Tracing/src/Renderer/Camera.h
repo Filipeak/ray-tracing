@@ -4,6 +4,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+/*
+ * TODO: Change to Left Handed Coordinate System
+ * - https://learnopengl.com/Getting-started/Coordinate-Systems
+ * - https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry/coordinate-systems.html
+ */
+
 class Camera
 {
 public:

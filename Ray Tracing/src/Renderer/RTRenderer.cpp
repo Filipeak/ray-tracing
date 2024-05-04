@@ -64,6 +64,34 @@ void RTRenderer::Update()
 	m_Camera->Update();
 }
 
+/*
+ * TODO: Progressive Rendering / Accumulation
+ * - https://www.youtube.com/watch?v=46ddlUImiQA&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
+ * - https://www.youtube.com/watch?v=A61S_2swwAc
+ * - https://www.youtube.com/watch?v=QQ3jr-9Rc1o
+ * - https://learnopengl.com/Advanced-OpenGL/Framebuffers
+ * - https://github.com/carl-vbn/opengl-raytracing/blob/main/src/main.cpp
+ * - https://github.com/Eduard0110/Path-tracer-using-OpenGL/blob/main/source/Main.cpp
+ * - https://github.com/ishaanshah/raytracer/blob/main/src/main.cpp#L181
+ * - https://stackoverflow.com/questions/23990366/accumulation-buffer-using-glfw
+ * - https://uysalaltas.github.io/2022/01/09/OpenGL_Imgui.html
+ * 
+ * TODO: Gamma Correction
+ * - https://learnopengl.com/Advanced-Lighting/Gamma-Correction
+ * - https://en.wikipedia.org/wiki/Gamma_correction
+ * - https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/usinggammacorrectionforaccuratecolorintensity
+ * - https://www.youtube.com/watch?v=wFx0d9c8WMs
+ * - https://www.youtube.com/watch?v=op805g4SZgE
+ * 
+ * TODO: Bloom & HDR
+ * - https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model#Fragment_shader
+ * - https://learnopengl.com/Advanced-Lighting/Bloom
+ * - https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
+ * - https://www.youtube.com/watch?v=tI70-HIc5ro
+ * - https://learnopengl.com/Advanced-Lighting/HDR
+ * - https://www.youtube.com/watch?v=1U-jym5WADU
+ * - https://www.youtube.com/watch?v=iikdcAA7cww
+ */
 void RTRenderer::Render()
 {
 	m_Framebuffer->Bind();
