@@ -14,12 +14,12 @@ VertexArray::~VertexArray()
 	OPENGL_CALL(glDeleteVertexArrays(1, &m_ID));
 }
 
-void VertexArray::Bind()
+void VertexArray::Bind() const
 {
 	OPENGL_CALL(glBindVertexArray(m_ID));
 }
 
-void VertexArray::Unbind()
+void VertexArray::Unbind() const
 {
 	OPENGL_CALL(glBindVertexArray(0));
 }

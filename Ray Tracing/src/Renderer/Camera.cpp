@@ -1,11 +1,12 @@
+#define GLM_FORCE_LEFT_HANDED
+
 #include "Camera.h"
 #include <GLFW/glfw3.h>
 
 static constexpr float MAX_PITCH_RAD = glm::pi<float>() / 3.0f;
 static constexpr glm::vec3 UP_DIR = glm::vec3(0.0f, 1.0f, 0.0f);
 
-Camera::Camera(const Window& window, glm::vec3 startPosition, glm::vec2 startRotation, float verticalFOV, float near, float far, float speed, float sensitivity)
-	: m_Window(window), m_VerticalFOV(verticalFOV), m_NearClip(near), m_FarClip(far), m_Speed(speed), m_Sensitivity(sensitivity)
+Camera::Camera(const Window& window, glm::vec3 startPosition, glm::vec2 startRotation, float verticalFOV, float near, float far, float speed, float sensitivity) : m_Window(window), m_VerticalFOV(verticalFOV), m_NearClip(near), m_FarClip(far), m_Speed(speed), m_Sensitivity(sensitivity)
 {
 	if (glfwRawMouseMotionSupported())
 	{
@@ -15,9 +16,9 @@ Camera::Camera(const Window& window, glm::vec3 startPosition, glm::vec2 startRot
 	m_Position = startPosition;
 	m_Rotation = startRotation;
 
-	RecalculateForwardVector();
-	RecalculateRightAndUpVectors();
+	RecalculateVectors();
 	RecalculateView();
+	RecalculateProjection();
 }
 
 /*
@@ -27,7 +28,7 @@ Camera::Camera(const Window& window, glm::vec3 startPosition, glm::vec2 startRot
  */
 void Camera::Update()
 {
-	bool moved = false;
+	m_Moved = false;
 
 	if (glfwGetMouseButton(m_Window.GetWindowHandle(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
 	{
@@ -36,8 +37,8 @@ void Camera::Update()
 		double mouseX, mouseY;
 		glfwGetCursorPos(m_Window.GetWindowHandle(), &mouseX, &mouseY);
 
-		float yaw = ((float)mouseX - m_Window.GetViewportWidth() / 2.0f) / m_Window.GetViewportWidth();
-		float pitch = (m_Window.GetViewportHeight() / 2.0f - (float)mouseY) / m_Window.GetViewportHeight();
+		float yaw = ((float)mouseX - m_Window.GetWindowWidth() / 2.0f) / m_Window.GetWindowWidth();
+		float pitch = (m_Window.GetWindowHeight() / 2.0f - (float)mouseY) / m_Window.GetWindowHeight();
 
 		if (m_FirstCameraClick)
 		{
@@ -50,10 +51,10 @@ void Camera::Update()
 				m_Rotation.y += deltaYaw;
 
 				m_Rotation.x = glm::clamp(m_Rotation.x, -MAX_PITCH_RAD, MAX_PITCH_RAD);
-				
-				RecalculateForwardVector();
 
-				moved = true;
+				RecalculateVectors();
+
+				m_Moved = true;
 			}
 		}
 
@@ -70,8 +71,6 @@ void Camera::Update()
 
 	float mulitplier = 1.0f;
 	glm::vec3 input(0.0f);
-
-	RecalculateRightAndUpVectors();
 
 	if (glfwGetKey(m_Window.GetWindowHandle(), GLFW_KEY_W) == GLFW_PRESS)
 	{
@@ -106,15 +105,24 @@ void Camera::Update()
 	{
 		m_Position += glm::normalize(input) * m_Window.GetDeltaTime() * mulitplier * m_Speed;
 
-		moved = true;
+		m_Moved = true;
 	}
 
-	if (moved)
+	if (m_Moved)
 	{
 		RecalculateView();
 	}
 
-	RecalculateProjectionIfAvailable();
+	if (m_Window.SizeChanged())
+	{
+		RecalculateProjection();
+	}
+
+	if (m_FOVChanged)
+	{
+		m_Moved = true;
+		m_FOVChanged = false;
+	}
 }
 
 const glm::vec3& Camera::GetPosition() const
@@ -132,35 +140,51 @@ const glm::mat4x4& Camera::GetInverseViewMatrix() const
 	return m_InverseView;
 }
 
-void Camera::RecalculateForwardVector()
+bool Camera::HasMoved() const
 {
-	float sin_yaw = sinf(-m_Rotation.y);
-	float cos_yaw = cosf(-m_Rotation.y);
+	return m_Moved;
+}
+
+void Camera::SetFOV(float fov)
+{
+	m_VerticalFOV = fov;
+	m_FOVChanged = true;
+
+	RecalculateProjection();
+}
+
+void Camera::SetSpeed(float speed)
+{
+	m_Speed = speed;
+}
+
+void Camera::SetSens(float sens)
+{
+	m_Sensitivity = sens;
+}
+
+void Camera::RecalculateVectors()
+{
+	float sin_yaw = sinf(m_Rotation.y);
+	float cos_yaw = cosf(m_Rotation.y);
 	float sin_pitch = sinf(m_Rotation.x);
 	float cos_pitch = cosf(m_Rotation.x);
 
 	m_ForwardDirection = glm::vec3(sin_yaw * cos_pitch, sin_pitch, cos_yaw * cos_pitch);
+	m_RightDirection = glm::normalize(glm::cross(UP_DIR, m_ForwardDirection));
+	m_UpDirection = glm::normalize(glm::cross(m_ForwardDirection, m_RightDirection));
 }
 
-void Camera::RecalculateRightAndUpVectors()
+void Camera::RecalculateProjection()
 {
-	m_RightDirection = glm::normalize(glm::cross(m_ForwardDirection, UP_DIR));
-	m_UpDirection = glm::normalize(glm::cross(m_RightDirection, m_ForwardDirection));
-}
+	glm::mat4x4 perspective = glm::perspectiveFov(glm::radians(m_VerticalFOV), (float)m_Window.GetWindowWidth(), (float)m_Window.GetWindowHeight(), m_NearClip, m_FarClip);
 
-void Camera::RecalculateProjectionIfAvailable()
-{
-	if (m_Window.ViewportChanged())
-	{
-		glm::mat4x4 perspective = glm::perspectiveFov(glm::radians(m_VerticalFOV), (float)m_Window.GetViewportWidth(), (float)m_Window.GetViewportHeight(), m_NearClip, m_FarClip);
-
-		m_InverseProjection = glm::inverse(perspective);
-	}
+	m_InverseProjection = glm::inverse(perspective);
 }
 
 void Camera::RecalculateView()
 {
-	glm::mat4x4 view = glm::lookAtRH(m_Position, m_Position + m_ForwardDirection, m_UpDirection);
+	glm::mat4x4 view = glm::lookAt(m_Position, m_Position + m_ForwardDirection, m_UpDirection);
 
 	m_InverseView = glm::inverse(view);
 }

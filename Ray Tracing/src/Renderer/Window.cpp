@@ -1,9 +1,8 @@
 #include "Window.h"
 #include "GLLog.h"
-#include "../Core/Config.h"
 #include <iostream>
 
-Window::Window() : m_Window(0), m_Width(0), m_Height(0), m_LastTime(0), m_DeltaTime(0), m_ViewportChanged(false), m_LastWidth(0), m_LastHeight(0)
+Window::Window(int width, int height, const char* title, bool vsync) : m_Window(nullptr), m_Width(width), m_Height(height), m_LastWidth(width), m_LastHeight(height), m_LastTime(0), m_DeltaTime(0), m_SizeChanged(false), m_VSync(vsync)
 {
 	if (!glfwInit())
 	{
@@ -12,11 +11,11 @@ Window::Window() : m_Window(0), m_Width(0), m_Height(0), m_LastTime(0), m_DeltaT
 		return;
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GLSL_MAJOR);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GLSL_MINOR);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	m_Window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, NULL, NULL);
+	m_Window = glfwCreateWindow(m_Width, m_Height, title, NULL, NULL);
 
 	if (!m_Window)
 	{
@@ -28,7 +27,8 @@ Window::Window() : m_Window(0), m_Width(0), m_Height(0), m_LastTime(0), m_DeltaT
 	}
 
 	glfwMakeContextCurrent(m_Window);
-	glfwSwapInterval(VSYNC);
+
+	SetVSync(m_VSync);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -37,7 +37,10 @@ Window::Window() : m_Window(0), m_Width(0), m_Height(0), m_LastTime(0), m_DeltaT
 		return;
 	}
 
-	PrintInfo();
+	std::cout << "OpenGL Info:" << std::endl;
+	OPENGL_CALL(std::cout << "> Vendor: " << glGetString(GL_VENDOR) << std::endl);
+	OPENGL_CALL(std::cout << "> Renderer: " << glGetString(GL_RENDERER) << std::endl);
+	OPENGL_CALL(std::cout << "> Version: " << glGetString(GL_VERSION) << std::endl);
 }
 
 Window::~Window()
@@ -52,13 +55,19 @@ bool Window::ShouldUpdate()
 	{
 		glfwGetFramebufferSize(m_Window, &m_Width, &m_Height);
 
-		OPENGL_CALL(glViewport(0, 0, m_Width, m_Height));
+		if (m_Width == 0 || m_Height == 0)
+		{
+			m_Width = m_LastWidth;
+			m_Height = m_LastHeight;
+		}
 
-		m_ViewportChanged = false;
+		m_SizeChanged = false;
 
 		if (m_LastWidth != m_Width || m_LastHeight != m_Height)
 		{
-			m_ViewportChanged = true;
+			std::cout << "Window size has been changed to: " << m_Width << " " << m_Height << std::endl;
+
+			m_SizeChanged = true;
 			m_LastWidth = m_Width;
 			m_LastHeight = m_Height;
 		}
@@ -85,12 +94,12 @@ GLFWwindow* Window::GetWindowHandle() const
 	return m_Window;
 }
 
-const int& Window::GetViewportWidth() const
+const int& Window::GetWindowWidth() const
 {
 	return m_Width;
 }
 
-const int& Window::GetViewportHeight() const
+const int& Window::GetWindowHeight() const
 {
 	return m_Height;
 }
@@ -100,15 +109,19 @@ float Window::GetDeltaTime() const
 	return (float)m_DeltaTime;
 }
 
-bool Window::ViewportChanged() const
+bool Window::SizeChanged() const
 {
-	return m_ViewportChanged;
+	return m_SizeChanged;
 }
 
-void Window::PrintInfo() const
+bool Window::IsVSyncEnabled() const
 {
-	std::cout << "OpenGL Info:" << std::endl;
-	std::cout << "> Vendor: " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "> Renderer: " << glGetString(GL_RENDERER) << std::endl;
-	std::cout << "> Version: " << glGetString(GL_VERSION) << std::endl;
+	return m_VSync;
+}
+
+void Window::SetVSync(bool vsync)
+{
+	m_VSync = vsync;
+
+	glfwSwapInterval((int)m_VSync);
 }

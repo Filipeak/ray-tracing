@@ -1,123 +1,192 @@
 #include "RTRenderer.h"
 #include "GLLog.h"
-#include "../Core/Config.h"
+#include <iostream>
 
-RTRenderer::RTRenderer(const Window& window) : m_Window(window), m_ReloadKeyPressTest(false)
+#define SCREEN_TEXTURE_1_SLOT 0
+#define SCREEN_TEXTURE_2_SLOT 1
+#define BLOOM_TEXTURE_SLOT 2
+
+RTRenderer::RTRenderer(const Window& window, Camera& camera, bool accumulate, float hdrExposure, float gamma, bool useBloom, float bloomStength, float bloomFilterRadius) : m_Window(window), m_Camera(camera), m_ReloadKeyPressTest(false), m_PingPongBufferSelect(false), m_AccumulationPasses(0), m_FrameIndex(1), m_Accumulate(accumulate), m_HdrExposure(hdrExposure), m_Gamma(gamma), m_UseBloom(useBloom), m_BloomStrength(bloomStength), m_BloomFilterRadius(bloomFilterRadius)
 {
-	float vertices[] = {
-		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-		+1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		+1.0f, +1.0f, 0.0f, 1.0f, 1.0f,
-		-1.0f, +1.0f, 0.0f, 0.0f, 1.0f,
-	};
+	m_Quad = new QuadRenderer();
+	m_Bloom = new Bloom(m_Window.GetWindowWidth(), m_Window.GetWindowHeight(), 5, m_Quad);
 
-	unsigned int indices[] = {
-		0, 1, 2,
-		0, 2, 3
-	};
+	m_MainShader = new Shader("shaders/quad.vert", "shaders/raytracing.frag");
+	m_ScreenShader = new Shader("shaders/quad.vert", "shaders/screen.frag");
 
-	m_VertexArray = new VertexArray();
-	m_VertexBuffer = new VertexBuffer(vertices, sizeof(vertices) / sizeof(float));
-	m_IndexBuffer = new IndexBuffer(indices, sizeof(indices) / sizeof(unsigned int));
+	m_ScreenTexture1 = new Texture(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+	m_ScreenTexture2 = new Texture(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+	m_RTFramebuffer = new Framebuffer(m_ScreenTexture1);
 
-	m_VertexArray->PushLayoutFloat(3);
-	m_VertexArray->PushLayoutFloat(2);
-	m_VertexArray->SaveLayout();
-
-	m_Shader = new Shader("shaders/quad.vert", "shaders/rt.frag");
-	m_ScreenShader = new Shader("shaders/quad.vert", "shaders/pp.frag");
-
-	m_Camera = new Camera(window, glm::vec3(0.0f, 0.0f, 5.0f), glm::vec2(0.0f, glm::pi<float>()), CAMERA_FOV, 0.3f, 1000.0f, CAMERA_SPEED, CAMERA_SENS);
-
-	m_Framebuffer = new Framebuffer(window);
-
-	m_StartTime = std::chrono::high_resolution_clock::now();
+	Texture::SelectSlot(SCREEN_TEXTURE_1_SLOT);
+	m_ScreenTexture1->Bind();
+	Texture::SelectSlot(SCREEN_TEXTURE_2_SLOT);
+	m_ScreenTexture2->Bind();
 }
 
 RTRenderer::~RTRenderer()
 {
-	delete m_VertexArray;
-	delete m_VertexBuffer;
-	delete m_IndexBuffer;
-	delete m_Shader;
+	delete m_Quad;
+	delete m_Bloom;
+	delete m_MainShader;
 	delete m_ScreenShader;
-	delete m_Camera;
-	delete m_Framebuffer;
+	delete m_RTFramebuffer;
+	delete m_ScreenTexture1;
+	delete m_ScreenTexture2;
 }
 
 void RTRenderer::Update()
+{
+	HandleReload();
+	HandleRescale();
+	HandleCamera();
+
+	RenderMainFrame();
+	RenderPostProcessing();
+}
+
+void RTRenderer::SetAccumulate(bool accumulate)
+{
+	m_Accumulate = accumulate;
+
+	if (!m_Accumulate)
+	{
+		m_AccumulationPasses = 0;
+	}
+}
+
+void RTRenderer::SetHDRExposure(float exposure)
+{
+	m_HdrExposure = exposure;
+}
+
+void RTRenderer::SetScreenGamma(float gamma)
+{
+	m_Gamma = gamma;
+}
+
+void RTRenderer::SetBloom(bool bloom)
+{
+	m_UseBloom = bloom;
+}
+
+void RTRenderer::SetBloomMipChains(int mipChains)
+{
+	m_Bloom->ChangeMipChainLength(mipChains);
+}
+
+void RTRenderer::SetBloomStrength(float strength)
+{
+	m_BloomStrength = strength;
+}
+
+void RTRenderer::SetBloomFilterRadius(float radius)
+{
+	m_BloomFilterRadius = radius;
+}
+
+void RTRenderer::HandleReload()
 {
 	if (glfwGetKey(m_Window.GetWindowHandle(), GLFW_KEY_R) == GLFW_PRESS)
 	{
 		if (!m_ReloadKeyPressTest)
 		{
-			m_Shader->Reload();
+			std::cout << "Reload requested" << std::endl;
+
+			m_MainShader->Reload();
+			m_ScreenShader->Reload();
+			m_Bloom->Reload();
 
 			m_ReloadKeyPressTest = true;
+			m_AccumulationPasses = 0;
 		}
 	}
 	else
 	{
 		m_ReloadKeyPressTest = false;
 	}
-
-	m_Camera->Update();
 }
 
-/*
- * TODO: Progressive Rendering / Accumulation
- * - https://www.youtube.com/watch?v=46ddlUImiQA&list=PLlrATfBNZ98edc5GshdBtREv5asFW3yXl&index=10
- * - https://www.youtube.com/watch?v=A61S_2swwAc
- * - https://www.youtube.com/watch?v=QQ3jr-9Rc1o
- * - https://learnopengl.com/Advanced-OpenGL/Framebuffers
- * - https://github.com/carl-vbn/opengl-raytracing/blob/main/src/main.cpp
- * - https://github.com/Eduard0110/Path-tracer-using-OpenGL/blob/main/source/Main.cpp
- * - https://github.com/ishaanshah/raytracer/blob/main/src/main.cpp#L181
- * - https://stackoverflow.com/questions/23990366/accumulation-buffer-using-glfw
- * - https://uysalaltas.github.io/2022/01/09/OpenGL_Imgui.html
- * 
- * TODO: Gamma Correction
- * - https://learnopengl.com/Advanced-Lighting/Gamma-Correction
- * - https://en.wikipedia.org/wiki/Gamma_correction
- * - https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/usinggammacorrectionforaccuratecolorintensity
- * - https://www.youtube.com/watch?v=wFx0d9c8WMs
- * - https://www.youtube.com/watch?v=op805g4SZgE
- * 
- * TODO: Bloom & HDR
- * - https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model#Fragment_shader
- * - https://learnopengl.com/Advanced-Lighting/Bloom
- * - https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
- * - https://www.youtube.com/watch?v=tI70-HIc5ro
- * - https://learnopengl.com/Advanced-Lighting/HDR
- * - https://www.youtube.com/watch?v=1U-jym5WADU
- * - https://www.youtube.com/watch?v=iikdcAA7cww
- */
-void RTRenderer::Render()
+void RTRenderer::HandleRescale()
 {
-	m_Framebuffer->Bind();
+	if (m_Window.SizeChanged())
+	{
+		m_ScreenTexture1->Rescale(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+		m_ScreenTexture2->Rescale(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+		m_Bloom->Rescale(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
 
-	std::chrono::duration<float> fsec = std::chrono::high_resolution_clock::now() - m_StartTime;
+		Texture::SelectSlot(SCREEN_TEXTURE_1_SLOT);
+		m_ScreenTexture1->Bind();
+		Texture::SelectSlot(SCREEN_TEXTURE_2_SLOT);
+		m_ScreenTexture2->Bind();
 
-	m_Shader->Bind();
-	m_Shader->SetVec2("u_Resolution", glm::vec2(m_Window.GetViewportWidth(), m_Window.GetViewportHeight()));
-	m_Shader->SetFloat("u_Time", fsec.count());
-	m_Shader->SetVec3("u_CameraPosition", m_Camera->GetPosition());
-	m_Shader->SetMat4x4("u_CameraInverseProjection", m_Camera->GetInverseProjectionMatrix());
-	m_Shader->SetMat4x4("u_CameraInverseView", m_Camera->GetInverseViewMatrix());
+		m_AccumulationPasses = 0;
 
-	m_VertexArray->Bind();
+		std::cout << "Framebuffers and textures were rescaled" << std::endl;
+	}
+}
 
-	OPENGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
-	OPENGL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+void RTRenderer::HandleCamera()
+{
+	m_Camera.Update();
+
+	if (m_Camera.HasMoved())
+	{
+		m_AccumulationPasses = 0;
+	}
+}
+
+void RTRenderer::RenderMainFrame()
+{
+	Framebuffer::SetViewportSize(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+
+	m_RTFramebuffer->Bind();
+	m_RTFramebuffer->SetTexture(!m_PingPongBufferSelect ? m_ScreenTexture1 : m_ScreenTexture2);
+
+	m_MainShader->Bind();
+	m_MainShader->SetInt("u_ScreenTexture", !m_PingPongBufferSelect ? SCREEN_TEXTURE_2_SLOT : SCREEN_TEXTURE_1_SLOT);
+	m_MainShader->SetUInt("u_AccumulationPasses", m_AccumulationPasses);
+	m_MainShader->SetVec2("u_Resolution", glm::vec2(m_Window.GetWindowWidth(), m_Window.GetWindowHeight()));
+	m_MainShader->SetUInt("u_FrameIndex", m_FrameIndex);
+	m_MainShader->SetVec3("u_CameraPosition", m_Camera.GetPosition());
+	m_MainShader->SetMat4x4("u_CameraInverseProjection", m_Camera.GetInverseProjectionMatrix());
+	m_MainShader->SetMat4x4("u_CameraInverseView", m_Camera.GetInverseViewMatrix());
+	m_Quad->Draw();
+
+	m_RTFramebuffer->Unbind();
 
 
-	m_Framebuffer->Unbind();
+	m_PingPongBufferSelect = !m_PingPongBufferSelect;
+
+	if (m_Accumulate)
+	{
+		m_AccumulationPasses++;
+	}
+	else
+	{
+		m_AccumulationPasses = 0;
+	}
+
+	m_FrameIndex++;
+}
+
+void RTRenderer::RenderPostProcessing()
+{
+	int screenTexture = m_PingPongBufferSelect ? SCREEN_TEXTURE_1_SLOT : SCREEN_TEXTURE_2_SLOT;
+
+	if (m_UseBloom)
+	{
+		m_Bloom->Render(screenTexture, BLOOM_TEXTURE_SLOT, m_BloomFilterRadius);
+	}
+
+	Framebuffer::SetViewportSize(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
 
 	m_ScreenShader->Bind();
-	m_Framebuffer->BindTexture();
-
-	m_VertexArray->Bind();
-
-	OPENGL_CALL(glClear(GL_COLOR_BUFFER_BIT));
-	OPENGL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+	m_ScreenShader->SetInt("u_ScreenTexture", screenTexture);
+	m_ScreenShader->SetInt("u_BloomTexture", BLOOM_TEXTURE_SLOT);
+	m_ScreenShader->SetInt("u_BloomEnabled", (int)m_UseBloom);
+	m_ScreenShader->SetFloat("u_BloomStrength", m_BloomStrength);
+	m_ScreenShader->SetFloat("u_HdrExposure", m_HdrExposure);
+	m_ScreenShader->SetFloat("u_Gamma", m_Gamma);
+	m_Quad->Draw();
 }

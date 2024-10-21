@@ -1,15 +1,16 @@
 #pragma once
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
-#define WINDOW_TITLE "Ray Tracing"
-
-#define GLSL_MAJOR 4
-#define GLSL_MINOR 3
-#define GLSL_VERSION "#version 430"
-
-#define VSYNC 0
-
-#define CAMERA_SPEED 5.0f
-#define CAMERA_SENS 3.5f
-#define CAMERA_FOV 70.0f
+struct ConfigData
+{
+	bool vsync = false;
+	bool accumulate = true;
+	float hdrExposure = 1.0f;
+	float screenGamma = 2.2f;
+	bool bloom = true;
+	int bloomMipChains = 5;
+	float bloomStrength = 0.05f;
+	float bloomFilterRadius = 0.005f;
+	float cameraSpeed = 7.0f;
+	float cameraSens = 3.5f;
+	float cameraFOV = 70.0f;
+};

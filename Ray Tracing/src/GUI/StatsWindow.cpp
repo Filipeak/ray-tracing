@@ -1,7 +1,7 @@
 #include "StatsWindow.h"
 #include "imgui/imgui.h"
 
-void StatsWindow::Update()
+void StatsWindow::Draw()
 {
 	ImGuiIO& io = ImGui::GetIO();
 

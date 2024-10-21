@@ -78,6 +78,18 @@
     <ClCompile Include="src\Renderer\Framebuffer.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="src\Renderer\Texture.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\ConfigWindow.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\QuadRenderer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Bloom.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dependencies\glad\include\glad\glad.h">
@@ -983,9 +995,6 @@
     <ClInclude Include="src\GUI\GUI.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\Config.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="src\GUI\StatsWindow.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -999,6 +1008,24 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="src\Renderer\Framebuffer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Texture.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\ConfigWindow.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\QuadRenderer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Bloom.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUIWindow.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Config.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1411,10 +1438,12 @@
     <None Include="dependencies\glm\glm\gtx\wrap.inl">
       <Filter>Pliki nagłówkowe</Filter>
     </None>
-    <None Include="shaders\rt.frag" />
+    <None Include="shaders\raytracing.frag" />
     <None Include="shaders\rt.vert" />
     <None Include="shaders\pp.vert" />
-    <None Include="shaders\pp.frag" />
+    <None Include="shaders\screen.frag" />
     <None Include="shaders\quad.vert" />
+    <None Include="shaders\bloom_downsample.frag" />
+    <None Include="shaders\bloom_upsample.frag" />
   </ItemGroup>
 </Project>

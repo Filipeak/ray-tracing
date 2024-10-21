@@ -1,20 +1,20 @@
 #pragma once
 
 #include <glad/glad.h>
-#include "Window.h"
+#include "Texture.h"
 
 class Framebuffer
 {
 public:
-	Framebuffer(const Window& window);
+	Framebuffer(const Texture* texture);
 	~Framebuffer();
 
 	void Bind() const;
 	void Unbind() const;
-	void BindTexture() const;
+	void SetTexture(const Texture* texture);
+
+	static void SetViewportSize(unsigned int width, unsigned int height);
 
 private:
-	const Window& m_Window;
 	GLuint m_ID;
-	GLuint m_TextureID;
 };

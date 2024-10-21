@@ -4,12 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-/*
- * TODO: Change to Left Handed Coordinate System
- * - https://learnopengl.com/Getting-started/Coordinate-Systems
- * - https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry/coordinate-systems.html
- */
-
 class Camera
 {
 public:
@@ -20,6 +14,11 @@ public:
 	const glm::vec3& GetPosition() const;
 	const glm::mat4x4& GetInverseProjectionMatrix() const;
 	const glm::mat4x4& GetInverseViewMatrix() const;
+	bool HasMoved() const;
+
+	void SetFOV(float fov);
+	void SetSpeed(float speed);
+	void SetSens(float sens);
 
 private:
 	const Window& m_Window;
@@ -38,9 +37,10 @@ private:
 	glm::vec3 m_RightDirection { 0.0f, 0.0f, 0.0f };
 	glm::vec2 m_LastMousePosition { 0.0f, 0.0f };
 	bool m_FirstCameraClick { false };
+	bool m_Moved { false };
+	bool m_FOVChanged { false };
 
-	void RecalculateForwardVector();
-	void RecalculateRightAndUpVectors();
-	void RecalculateProjectionIfAvailable();
+	void RecalculateVectors();
+	void RecalculateProjection();
 	void RecalculateView();
 };

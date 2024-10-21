@@ -1,6 +1,6 @@
 #include "GUI.h"
 #include "StatsWindow.h"
-#include "../Core/Config.h"
+#include "ConfigWindow.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -18,14 +18,24 @@ GUI::GUI(const Window& window)
 	ImGui::StyleColorsDark();
 
 	ImGui_ImplGlfw_InitForOpenGL(window.GetWindowHandle(), true);
-	ImGui_ImplOpenGL3_Init(GLSL_VERSION);
+	ImGui_ImplOpenGL3_Init("#version 430");
 }
 
 GUI::~GUI()
 {
+	for (size_t i = 0; i < m_GUIWindows.size(); i++)
+	{
+		delete m_GUIWindows[i];
+	}
+
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+}
+
+void GUI::AddWindow(GUIWindow* guiWindow)
+{
+	m_GUIWindows.emplace_back(guiWindow);
 }
 
 void GUI::Begin()
@@ -45,5 +55,8 @@ void GUI::End()
 
 void GUI::Update()
 {
-	StatsWindow::Update();
+	for (size_t i = 0; i < m_GUIWindows.size(); i++)
+	{
+		m_GUIWindows[i]->Draw();
+	}
 }

@@ -1,7 +1,9 @@
 #pragma once
 
-class StatsWindow
+#include "GUIWindow.h"
+
+class StatsWindow : public GUIWindow
 {
 public:
-	static void Update();
+	void Draw();
 };

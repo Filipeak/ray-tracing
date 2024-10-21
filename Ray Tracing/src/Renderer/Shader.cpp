@@ -22,19 +22,28 @@ void Shader::Reload()
 
 	DeleteShaderProgram();
 	LinkShaderProgram();
-	Bind();
 
 	std::cout << "Reloaded shader!" << std::endl;
 }
 
-void Shader::Bind()
+void Shader::Bind() const
 {
 	OPENGL_CALL(glUseProgram(m_ID));
 }
 
-void Shader::Unbind()
+void Shader::Unbind() const
 {
 	OPENGL_CALL(glUseProgram(0));
+}
+
+void Shader::SetInt(const std::string& name, int v)
+{
+	OPENGL_CALL(glUniform1i(GetUniformLocation(name), v));
+}
+
+void Shader::SetUInt(const std::string& name, unsigned int v)
+{
+	OPENGL_CALL(glUniform1ui(GetUniformLocation(name), v));
 }
 
 void Shader::SetFloat(const std::string& name, float v)
@@ -55,16 +64,6 @@ void Shader::SetVec3(const std::string& name, const glm::vec3& vec)
 void Shader::SetVec4(const std::string& name, const glm::vec4& vec)
 {
 	OPENGL_CALL(glUniform4f(GetUniformLocation(name), vec.x, vec.y, vec.z, vec.w));
-}
-
-void Shader::SetUInt32(const std::string& name, uint32_t v)
-{
-	OPENGL_CALL(glUniform1ui(GetUniformLocation(name), v));
-}
-
-void Shader::SetMat3x3(const std::string& name, const glm::mat3x3& mat)
-{
-	OPENGL_CALL(glUniformMatrix3fv(GetUniformLocation(name), 1, GL_FALSE, &mat[0][0]));
 }
 
 void Shader::SetMat4x4(const std::string& name, const glm::mat4x4& mat)
@@ -106,7 +105,7 @@ void Shader::LinkShaderProgram()
 	OPENGL_CALL(glDeleteShader(fragmentShader));
 }
 
-GLuint Shader::CompileShader(std::string path, bool isVertex)
+GLuint Shader::CompileShader(std::string path, bool isVertex) const
 {
 	std::string content = GetFileContent(path);
 	const char* source = content.c_str();
@@ -135,12 +134,12 @@ GLuint Shader::CompileShader(std::string path, bool isVertex)
 	return shader;
 }
 
-void Shader::DeleteShaderProgram()
+void Shader::DeleteShaderProgram() const
 {
 	OPENGL_CALL(glDeleteProgram(m_ID));
 }
 
-std::string Shader::GetFileContent(std::string path)
+std::string Shader::GetFileContent(std::string path) const
 {
 	std::ifstream file(path);
 
