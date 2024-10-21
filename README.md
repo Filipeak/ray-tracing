@@ -20,13 +20,13 @@ Main Ray Tracing logic is located in ```shaders/raytracing.frag```.
 Project is made in Visual Studio 2022, so just open ```.sln``` file
 
 ## Controls
-W - Forward
-A - Left
-S - Backward
-D - Right
-Q - Down
-E - Up
-Mouse Right Click + Move - Camera rotation
+- W - Forward
+- A - Left
+- S - Backward
+- D - Right
+- Q - Down
+- E - Up
+- Mouse Right Click + Move - Camera rotation
 
 ## Next steps
 While doing the project I found many advanced things which can also be done:
