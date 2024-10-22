@@ -30,6 +30,7 @@ Project is made in Visual Studio 2022, so just open ```.sln``` file
 
 ## Next steps
 While doing the project I found many advanced things which can also be done:
+- Bloom Threshold / Karis Average
 - Acceleration structures (BVH)
 - FBX Importing
 - Refraction (Fresnel equations)
