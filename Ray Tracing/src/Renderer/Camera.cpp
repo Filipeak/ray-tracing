@@ -82,11 +82,11 @@ void Camera::Update()
 	}
 	if (glfwGetKey(m_Window.GetWindowHandle(), GLFW_KEY_A) == GLFW_PRESS)
 	{
-		input -= m_RightDirection;
+		input -= m_LeftDirection;
 	}
 	if (glfwGetKey(m_Window.GetWindowHandle(), GLFW_KEY_D) == GLFW_PRESS)
 	{
-		input += m_RightDirection;
+		input += m_LeftDirection;
 	}
 	if (glfwGetKey(m_Window.GetWindowHandle(), GLFW_KEY_Q) == GLFW_PRESS)
 	{
@@ -171,8 +171,8 @@ void Camera::RecalculateVectors()
 	float cos_pitch = cosf(m_Rotation.x);
 
 	m_ForwardDirection = glm::vec3(sin_yaw * cos_pitch, sin_pitch, cos_yaw * cos_pitch);
-	m_RightDirection = glm::normalize(glm::cross(UP_DIR, m_ForwardDirection));
-	m_UpDirection = glm::normalize(glm::cross(m_ForwardDirection, m_RightDirection));
+	m_LeftDirection = glm::normalize(glm::cross(UP_DIR, m_ForwardDirection));
+	m_UpDirection = glm::normalize(glm::cross(m_ForwardDirection, m_LeftDirection));
 }
 
 void Camera::RecalculateProjection()
@@ -185,6 +185,6 @@ void Camera::RecalculateProjection()
 void Camera::RecalculateView()
 {
 	glm::mat4x4 view = glm::lookAt(m_Position, m_Position + m_ForwardDirection, m_UpDirection);
-
+	
 	m_InverseView = glm::inverse(view);
 }

@@ -34,7 +34,7 @@ private:
 	glm::vec2 m_Rotation { 0.0f, 0.0f };
 	glm::vec3 m_ForwardDirection { 0.0f, 0.0f, 0.0f };
 	glm::vec3 m_UpDirection { 0.0f, 0.0f, 0.0f };
-	glm::vec3 m_RightDirection { 0.0f, 0.0f, 0.0f };
+	glm::vec3 m_LeftDirection { 0.0f, 0.0f, 0.0f };
 	glm::vec2 m_LastMousePosition { 0.0f, 0.0f };
 	bool m_FirstCameraClick { false };
 	bool m_Moved { false };
