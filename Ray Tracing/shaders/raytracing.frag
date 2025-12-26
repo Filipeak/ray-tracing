@@ -48,7 +48,6 @@ layout (location = 0) out vec4 FragColor;
 
 uniform sampler2D u_ScreenTexture;
 uniform uint u_SamplesPerPixel;
-uniform uint u_MaxBounces;
 uniform uint u_AccumulationPasses;
 uniform vec2 u_Resolution;
 uniform uint u_FrameIndex;
