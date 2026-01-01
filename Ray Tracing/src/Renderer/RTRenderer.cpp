@@ -6,10 +6,10 @@
 #define SCREEN_TEXTURE_2_SLOT 1
 #define BLOOM_TEXTURE_SLOT 2
 
-RTRenderer::RTRenderer(const Window& window, Camera& camera, bool accumulate, float hdrExposure, float gamma, bool useBloom, float bloomStength, float bloomFilterRadius) : m_Window(window), m_Camera(camera), m_ReloadKeyPressTest(false), m_PingPongBufferSelect(false), m_AccumulationPasses(0), m_FrameIndex(1), m_Accumulate(accumulate), m_HdrExposure(hdrExposure), m_Gamma(gamma), m_UseBloom(useBloom), m_BloomStrength(bloomStength), m_BloomFilterRadius(bloomFilterRadius)
+RTRenderer::RTRenderer(const Window& window, Camera& camera, bool accumulate, float hdrExposure, float gamma, bool useBloom, int bloomMipChains, float bloomStrength, float bloomFilterRadius) : m_Window(window), m_Camera(camera), m_ReloadKeyPressTest(false), m_PingPongBufferSelect(false), m_AccumulationPasses(0), m_FrameIndex(1), m_Accumulate(accumulate), m_HdrExposure(hdrExposure), m_Gamma(gamma), m_UseBloom(useBloom), m_BloomStrength(bloomStrength), m_BloomFilterRadius(bloomFilterRadius)
 {
 	m_Quad = new QuadRenderer();
-	m_Bloom = new Bloom(m_Window.GetWindowWidth(), m_Window.GetWindowHeight(), 5, m_Quad);
+	m_Bloom = new Bloom(m_Window.GetWindowWidth(), m_Window.GetWindowHeight(), bloomMipChains, m_Quad);
 
 	m_MainShader = new Shader("shaders/quad.vert", "shaders/raytracing.frag");
 	m_ScreenShader = new Shader("shaders/quad.vert", "shaders/screen.frag");

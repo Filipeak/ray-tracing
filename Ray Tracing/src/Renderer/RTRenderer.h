@@ -11,7 +11,7 @@
 class RTRenderer
 {
 public:
-	RTRenderer(const Window& window, Camera& camera, bool accumulate, float hdrExposure, float gamma, bool useBloom, float bloomStength, float bloomFilterRadius);
+	RTRenderer(const Window& window, Camera& camera, bool accumulate, float hdrExposure, float gamma, bool useBloom, int bloomMipChains, float bloomStrength, float bloomFilterRadius);
 	~RTRenderer();
 
 	void Update();
