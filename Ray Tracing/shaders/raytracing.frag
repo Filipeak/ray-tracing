@@ -86,9 +86,9 @@ const Box BOXES[] = Box[]
  * REF: https://www.youtube.com/watch?v=5_RAHZQCPjE
  * REF: https://www.reedbeta.com/blog/hash-functions-for-gpu-rendering/
  */
-uint pcg_hash(uint input)
+uint pcg_hash(uint inp)
 {
-	uint state = input * 747796405u + 2891336453u;
+	uint state = inp * 747796405u + 2891336453u;
 	uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
 	return (word >> 22u) ^ word;
 }
