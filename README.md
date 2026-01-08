@@ -40,6 +40,7 @@ While doing the project I found many advanced things which can also be done:
 - Textures
 - Compute Shaders
 - Other APIs support (DirectX, Vulkan)
+- DLSS
 
 ## Resources
 - https://raytracing.github.io/
