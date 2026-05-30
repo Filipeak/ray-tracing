@@ -35,7 +35,7 @@ void Framebuffer::SetTexture(const Texture* texture)
 	}
 }
 
-void Framebuffer::SetViewportSize(unsigned int width, unsigned int height)
+void Framebuffer::SetGlobalViewportSize(unsigned int width, unsigned int height)
 {
 	OPENGL_CALL(glViewport(0, 0, width, height));
 }

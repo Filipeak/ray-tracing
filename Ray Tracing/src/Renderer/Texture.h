@@ -8,7 +8,7 @@ public:
 	Texture(int width, int height);
 	~Texture();
 
-	void Rescale(int width, int height);
+	void SetupCurrentTexture(int width, int height);
 	void Bind() const;
 	void Unbind() const;
 
@@ -22,6 +22,4 @@ private:
 	GLuint m_TextureID;
 	int m_Width;
 	int m_Height;
-
-	void SetupCurrentTexture(int width, int height);
 };

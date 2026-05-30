@@ -6,33 +6,21 @@
 #define SCREEN_TEXTURE_2_SLOT 1
 #define BLOOM_TEXTURE_SLOT 2
 
-RTRenderer::RTRenderer(const Window& window, Camera& camera, bool accumulate, float hdrExposure, float gamma, bool useBloom, int bloomMipChains, float bloomStrength, float bloomFilterRadius) : m_Window(window), m_Camera(camera), m_ReloadKeyPressTest(false), m_PingPongBufferSelect(false), m_AccumulationPasses(0), m_FrameIndex(1), m_Accumulate(accumulate), m_HdrExposure(hdrExposure), m_Gamma(gamma), m_UseBloom(useBloom), m_BloomStrength(bloomStrength), m_BloomFilterRadius(bloomFilterRadius)
+RTRenderer::RTRenderer(const Window& window, Camera& camera, bool accumulate, float hdrExposure, float gamma, bool useBloom, int bloomMipChains, float bloomStrength, float bloomFilterRadius) : m_Window(window), m_Camera(camera), m_CurrentBackupTextureSlot(0), m_CurrentScreenTextureSlot(0), m_ReloadKeyPressTest(false), m_PingPongBufferSelect(true), m_AccumulationPasses(0), m_FrameIndex(1), m_Accumulate(accumulate), m_HdrExposure(hdrExposure), m_Gamma(gamma), m_UseBloom(useBloom), m_BloomStrength(bloomStrength), m_BloomFilterRadius(bloomFilterRadius)
 {
-	m_Quad = new QuadRenderer();
-	m_Bloom = new Bloom(m_Window.GetWindowWidth(), m_Window.GetWindowHeight(), bloomMipChains, m_Quad);
-
-	m_MainShader = new Shader("shaders/quad.vert", "shaders/raytracing.frag");
-	m_ScreenShader = new Shader("shaders/quad.vert", "shaders/screen.frag");
-
-	m_ScreenTexture1 = new Texture(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
-	m_ScreenTexture2 = new Texture(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
-	m_RTFramebuffer = new Framebuffer(m_ScreenTexture1);
+	m_Quad = std::make_shared<QuadRenderer>();
+	m_Bloom = std::make_unique<Bloom>(m_Window.GetWindowWidth(), m_Window.GetWindowHeight(), BLOOM_TEXTURE_SLOT, bloomMipChains, m_Quad);
+	m_MainShader = std::make_unique<Shader>("shaders/quad.vert", "shaders/raytracing.frag");
+	m_ScreenShader = std::make_unique<Shader>("shaders/quad.vert", "shaders/screen.frag");
+	m_ScreenTexture1 = std::make_unique<Texture>(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+	m_ScreenTexture2 = std::make_unique<Texture>(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+	m_RTFramebuffer = std::make_unique<Framebuffer>(m_ScreenTexture1.get());
 
 	Texture::SelectSlot(SCREEN_TEXTURE_1_SLOT);
 	m_ScreenTexture1->Bind();
+
 	Texture::SelectSlot(SCREEN_TEXTURE_2_SLOT);
 	m_ScreenTexture2->Bind();
-}
-
-RTRenderer::~RTRenderer()
-{
-	delete m_Quad;
-	delete m_Bloom;
-	delete m_MainShader;
-	delete m_ScreenShader;
-	delete m_RTFramebuffer;
-	delete m_ScreenTexture1;
-	delete m_ScreenTexture2;
 }
 
 void RTRenderer::Update()
@@ -41,8 +29,11 @@ void RTRenderer::Update()
 	HandleRescale();
 	HandleCamera();
 
+	UpdatePingPongBufferSelect();
+
 	RenderMainFrame();
 	RenderPostProcessing();
+	RenderFinal();
 }
 
 void RTRenderer::SetAccumulate(bool accumulate)
@@ -111,14 +102,15 @@ void RTRenderer::HandleRescale()
 {
 	if (m_Window.SizeChanged())
 	{
-		m_ScreenTexture1->Rescale(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
-		m_ScreenTexture2->Rescale(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
-		m_Bloom->Rescale(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
-
 		Texture::SelectSlot(SCREEN_TEXTURE_1_SLOT);
 		m_ScreenTexture1->Bind();
+		m_ScreenTexture1->SetupCurrentTexture(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+
 		Texture::SelectSlot(SCREEN_TEXTURE_2_SLOT);
 		m_ScreenTexture2->Bind();
+		m_ScreenTexture2->SetupCurrentTexture(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+
+		m_Bloom->Rescale(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
 
 		m_AccumulationPasses = 0;
 
@@ -136,15 +128,22 @@ void RTRenderer::HandleCamera()
 	}
 }
 
+void RTRenderer::UpdatePingPongBufferSelect()
+{
+	m_CurrentScreenTextureSlot = m_PingPongBufferSelect ? SCREEN_TEXTURE_1_SLOT : SCREEN_TEXTURE_2_SLOT;
+	m_CurrentBackupTextureSlot = m_PingPongBufferSelect ? SCREEN_TEXTURE_2_SLOT : SCREEN_TEXTURE_1_SLOT;
+
+	m_PingPongBufferSelect = !m_PingPongBufferSelect;
+}
+
 void RTRenderer::RenderMainFrame()
 {
-	Framebuffer::SetViewportSize(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+	Framebuffer::SetGlobalViewportSize(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
 
 	m_RTFramebuffer->Bind();
-	m_RTFramebuffer->SetTexture(!m_PingPongBufferSelect ? m_ScreenTexture1 : m_ScreenTexture2);
-
+	m_RTFramebuffer->SetTexture(m_CurrentScreenTextureSlot == SCREEN_TEXTURE_1_SLOT ? m_ScreenTexture1.get() : m_ScreenTexture2.get());
 	m_MainShader->Bind();
-	m_MainShader->SetInt("u_ScreenTexture", !m_PingPongBufferSelect ? SCREEN_TEXTURE_2_SLOT : SCREEN_TEXTURE_1_SLOT);
+	m_MainShader->SetInt("u_ScreenTexture", m_CurrentBackupTextureSlot);
 	m_MainShader->SetUInt("u_AccumulationPasses", m_AccumulationPasses);
 	m_MainShader->SetVec2("u_Resolution", glm::vec2(m_Window.GetWindowWidth(), m_Window.GetWindowHeight()));
 	m_MainShader->SetUInt("u_FrameIndex", m_FrameIndex);
@@ -152,37 +151,26 @@ void RTRenderer::RenderMainFrame()
 	m_MainShader->SetMat4x4("u_CameraInverseProjection", m_Camera.GetInverseProjectionMatrix());
 	m_MainShader->SetMat4x4("u_CameraInverseView", m_Camera.GetInverseViewMatrix());
 	m_Quad->Draw();
-
 	m_RTFramebuffer->Unbind();
 
-
-	m_PingPongBufferSelect = !m_PingPongBufferSelect;
-
-	if (m_Accumulate)
-	{
-		m_AccumulationPasses++;
-	}
-	else
-	{
-		m_AccumulationPasses = 0;
-	}
-
+	m_AccumulationPasses = m_Accumulate ? m_AccumulationPasses + 1 : 0;
 	m_FrameIndex++;
 }
 
 void RTRenderer::RenderPostProcessing()
 {
-	int screenTexture = m_PingPongBufferSelect ? SCREEN_TEXTURE_1_SLOT : SCREEN_TEXTURE_2_SLOT;
-
 	if (m_UseBloom)
 	{
-		m_Bloom->Render(screenTexture, BLOOM_TEXTURE_SLOT, m_BloomFilterRadius);
+		m_Bloom->Render(m_CurrentScreenTextureSlot, m_BloomFilterRadius);
 	}
+}
 
-	Framebuffer::SetViewportSize(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
+void RTRenderer::RenderFinal()
+{
+	Framebuffer::SetGlobalViewportSize(m_Window.GetWindowWidth(), m_Window.GetWindowHeight());
 
 	m_ScreenShader->Bind();
-	m_ScreenShader->SetInt("u_ScreenTexture", screenTexture);
+	m_ScreenShader->SetInt("u_ScreenTexture", m_CurrentScreenTextureSlot);
 	m_ScreenShader->SetInt("u_BloomTexture", BLOOM_TEXTURE_SLOT);
 	m_ScreenShader->SetInt("u_BloomEnabled", (int)m_UseBloom);
 	m_ScreenShader->SetFloat("u_BloomStrength", m_BloomStrength);

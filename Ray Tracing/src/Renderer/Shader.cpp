@@ -23,7 +23,7 @@ void Shader::Reload()
 	DeleteShaderProgram();
 	LinkShaderProgram();
 
-	std::cout << "Reloaded shader!" << std::endl;
+	std::cout << "Reloaded shader! (" << m_VertexShaderPath << ", " << m_FragmentShaderPath << ")" << std::endl;
 }
 
 void Shader::Bind() const

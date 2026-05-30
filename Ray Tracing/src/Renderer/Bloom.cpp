@@ -1,33 +1,34 @@
 #include "Bloom.h"
 #include "GLLog.h"
+#include <iostream>
 
-Bloom::Bloom(int windowWidth, int windowHeight, size_t mipChainLength, const QuadRenderer* quad) : m_WindowWidth(windowWidth), m_WindowHeight(windowHeight), m_MipChainLength(mipChainLength), m_Quad(quad)
+Bloom::Bloom(int windowWidth, int windowHeight, int bloomTextureSlot, size_t mipChainLength, std::shared_ptr<QuadRenderer> quad) : m_WindowWidth(windowWidth), m_WindowHeight(windowHeight), m_BloomTextureSlot(bloomTextureSlot), m_MipChainLength(mipChainLength), m_Quad(quad)
 {
-	m_DownsamplingShader = new Shader("shaders/quad.vert", "shaders/bloom_downsample.frag");
-	m_UpsamplingShader = new Shader("shaders/quad.vert", "shaders/bloom_upsample.frag");
+	m_DownsamplingShader = std::make_unique<Shader>("shaders/quad.vert", "shaders/bloom_downsample.frag");
+	m_UpsamplingShader = std::make_unique<Shader>("shaders/quad.vert", "shaders/bloom_upsample.frag");
 
 	RecreateTexture();
+
+	m_Framebuffer = std::make_unique<Framebuffer>(m_BloomTextures[0].get());
 }
 
 Bloom::~Bloom()
 {
-	delete m_DownsamplingShader;
-	delete m_UpsamplingShader;
-
 	ClearTextures();
 }
 
-void Bloom::Render(int srcTextureId, int bloomTextureId, float filterRadius)
+void Bloom::Render(int srcTextureId, float filterRadius)
 {
-	Texture::SelectSlot(bloomTextureId);
+	Texture::SelectSlot(m_BloomTextureSlot);
 
 	m_Framebuffer->Bind();
 
-	RenderDownsamples(srcTextureId, bloomTextureId);
-	RenderUpsamples(bloomTextureId, filterRadius);
+	RenderDownsamples(srcTextureId);
+	RenderUpsamples(filterRadius);
 
 	m_Framebuffer->Unbind();
-
+	
+	// Bind the first bloom texture for use in the next shader (e.g. screen shader)
 	m_BloomTextures[0]->Bind();
 }
 
@@ -35,6 +36,8 @@ void Bloom::Reload()
 {
 	m_DownsamplingShader->Reload();
 	m_UpsamplingShader->Reload();
+
+	std::cout << "Bloom shaders were reloaded" << std::endl;
 }
 
 void Bloom::Rescale(int windowWidth, int windowHeight)
@@ -54,7 +57,7 @@ void Bloom::ChangeMipChainLength(size_t newMipChainLength)
 	RecreateTexture();
 }
 
-void Bloom::RenderDownsamples(int srcTextureId, int bloomTextureId)
+void Bloom::RenderDownsamples(int srcTextureId)
 {
 	m_DownsamplingShader->Bind();
 
@@ -62,22 +65,19 @@ void Bloom::RenderDownsamples(int srcTextureId, int bloomTextureId)
 
 	for (size_t i = 0; i < m_BloomTextures.size(); i++)
 	{
-		const Texture* tex = m_BloomTextures[i];
+		const Texture* tex = m_BloomTextures[i].get();
 
 		m_DownsamplingShader->SetInt("u_ScreenTexture", currentTexture);
 		m_DownsamplingShader->SetVec2("u_Resolution", glm::vec2(tex->GetWidth(), tex->GetHeight()));
 
-		Framebuffer::SetViewportSize(tex->GetWidth(), tex->GetHeight());
-		m_Framebuffer->SetTexture(tex);
+		RenderTexture(tex);
 
-		m_Quad->Draw();
-
-		tex->Bind();
-		currentTexture = bloomTextureId;
+		tex->Bind(); // Current slot is already set to bloom texture slot
+		currentTexture = m_BloomTextureSlot;
 	}
 }
 
-void Bloom::RenderUpsamples(int bloomTextureId, float filterRadius)
+void Bloom::RenderUpsamples(float filterRadius)
 {
 	m_UpsamplingShader->Bind();
 
@@ -87,38 +87,40 @@ void Bloom::RenderUpsamples(int bloomTextureId, float filterRadius)
 
 	for (size_t i = m_BloomTextures.size() - 1; i > 0; i--)
 	{
-		const Texture* tex = m_BloomTextures[i];
-		const Texture* nextTex = m_BloomTextures[i - 1];
+		const Texture* tex = m_BloomTextures[i].get();
+		const Texture* nextTex = m_BloomTextures[i - 1].get();
 
 		tex->Bind();
 
-		m_UpsamplingShader->SetInt("u_ScreenTexture", bloomTextureId);
+		m_UpsamplingShader->SetInt("u_ScreenTexture", m_BloomTextureSlot);
 		m_UpsamplingShader->SetFloat("u_FilterRadius", filterRadius);
 
-		Framebuffer::SetViewportSize(nextTex->GetWidth(), nextTex->GetHeight());
-		m_Framebuffer->SetTexture(nextTex);
-
-		m_Quad->Draw();
+		RenderTexture(nextTex);
 	}
 
 	OPENGL_CALL(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 	OPENGL_CALL(glDisable(GL_BLEND));
 }
 
+void Bloom::RenderTexture(const Texture* texture)
+{
+	Framebuffer::SetGlobalViewportSize(texture->GetWidth(), texture->GetHeight());
+
+	m_Framebuffer->SetTexture(texture);
+	m_Quad->Draw();
+}
+
 void Bloom::ClearTextures()
 {
-	delete m_Framebuffer;
-
-	for (size_t i = 0; i < m_BloomTextures.size(); i++)
-	{
-		delete m_BloomTextures[i];
-	}
-
 	m_BloomTextures.clear();
+
+	std::cout << "Bloom textures were cleared" << std::endl;
 }
 
 void Bloom::RecreateTexture()
 {
+	Texture::SelectSlot(m_BloomTextureSlot);
+
 	m_BloomTextures.reserve(m_MipChainLength);
 
 	int texWidth = m_WindowWidth;
@@ -129,10 +131,8 @@ void Bloom::RecreateTexture()
 		texWidth /= 2;
 		texHeight /= 2;
 
-		Texture* t = new Texture(texWidth, texHeight);
-
-		m_BloomTextures.emplace_back(t);
+		m_BloomTextures.emplace_back(std::make_unique<Texture>(texWidth, texHeight));
 	}
 
-	m_Framebuffer = new Framebuffer(m_BloomTextures[0]);
+	std::cout << "Bloom textures were recreated with new size: " << m_WindowWidth << "x" << m_WindowHeight << " and mip chain length: " << m_MipChainLength << std::endl;
 }

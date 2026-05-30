@@ -15,20 +15,13 @@ QuadRenderer::QuadRenderer()
 		0, 2, 3
 	};
 
-	m_VertexArray = new VertexArray();
-	m_VertexBuffer = new VertexBuffer(vertices, sizeof(vertices) / sizeof(float));
-	m_IndexBuffer = new IndexBuffer(indices, sizeof(indices) / sizeof(unsigned int));
+	m_VertexArray = std::make_unique<VertexArray>();
+	m_VertexBuffer = std::make_unique<VertexBuffer>(vertices, sizeof(vertices) / sizeof(float));
+	m_IndexBuffer = std::make_unique<IndexBuffer>(indices, sizeof(indices) / sizeof(unsigned int));
 
 	m_VertexArray->PushLayoutFloat(3);
 	m_VertexArray->PushLayoutFloat(2);
 	m_VertexArray->SaveLayout();
-}
-
-QuadRenderer::~QuadRenderer()
-{
-	delete m_VertexArray;
-	delete m_VertexBuffer;
-	delete m_IndexBuffer;
 }
 
 void QuadRenderer::Draw() const

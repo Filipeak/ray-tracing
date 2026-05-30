@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "Window.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
@@ -9,12 +10,11 @@ class QuadRenderer
 {
 public:
 	QuadRenderer();
-	~QuadRenderer();
 
 	void Draw() const;
 
 private:
-	VertexArray* m_VertexArray;
-	VertexBuffer* m_VertexBuffer;
-	IndexBuffer* m_IndexBuffer;
+	std::unique_ptr<VertexArray> m_VertexArray;
+	std::unique_ptr<VertexBuffer> m_VertexBuffer;
+	std::unique_ptr<IndexBuffer> m_IndexBuffer;
 };

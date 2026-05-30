@@ -37,6 +37,8 @@ Window::Window(int width, int height, const char* title, bool vsync) : m_Window(
 		return;
 	}
 
+	std::cout << "Successfully initialized window and OpenGL context" << std::endl;
+
 	std::cout << "OpenGL Info:" << std::endl;
 	OPENGL_CALL(std::cout << "> Vendor: " << glGetString(GL_VENDOR) << std::endl);
 	OPENGL_CALL(std::cout << "> Renderer: " << glGetString(GL_RENDERER) << std::endl);

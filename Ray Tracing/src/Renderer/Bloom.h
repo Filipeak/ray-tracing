@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include "Framebuffer.h"
 #include "QuadRenderer.h"
@@ -14,10 +15,10 @@
 class Bloom
 {
 public:
-	Bloom(int windowWidth, int windowHeight, size_t mipChainLength, const QuadRenderer* quad);
+	Bloom(int windowWidth, int windowHeight, int bloomTextureSlot, size_t mipChainLength, std::shared_ptr<QuadRenderer> quad);
 	~Bloom();
 
-	void Render(int srcTextureId, int bloomTextureId, float filterRadius);
+	void Render(int srcTextureId, float filterRadius);
 	void Reload();
 	void Rescale(int windowWidth, int windowHeight);
 	void ChangeMipChainLength(size_t newMipChainLength);
@@ -25,15 +26,19 @@ public:
 private:
 	int m_WindowWidth;
 	int m_WindowHeight;
-	size_t m_MipChainLength;
-	const QuadRenderer* m_Quad;
-	Shader* m_DownsamplingShader;
-	Shader* m_UpsamplingShader;
-	std::vector<Texture*> m_BloomTextures;
-	Framebuffer* m_Framebuffer;
 
-	void RenderDownsamples(int srcTextureId, int bloomTextureId);
-	void RenderUpsamples(int bloomTextureId, float filterRadius);
+	int m_BloomTextureSlot;
+	size_t m_MipChainLength;
+	std::vector<std::unique_ptr<Texture>> m_BloomTextures;
+
+	std::shared_ptr<QuadRenderer> m_Quad;
+	std::unique_ptr<Shader> m_DownsamplingShader;
+	std::unique_ptr<Shader> m_UpsamplingShader;
+	std::unique_ptr<Framebuffer> m_Framebuffer;
+
+	void RenderDownsamples(int srcTextureId);
+	void RenderUpsamples(float filterRadius);
+	void RenderTexture(const Texture* texture);
 	void ClearTextures();
 	void RecreateTexture();
 };

@@ -13,7 +13,7 @@ public:
 	void Unbind() const;
 	void SetTexture(const Texture* texture);
 
-	static void SetViewportSize(unsigned int width, unsigned int height);
+	static void SetGlobalViewportSize(unsigned int width, unsigned int height);
 
 private:
 	GLuint m_ID;
