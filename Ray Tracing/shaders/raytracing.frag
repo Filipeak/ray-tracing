@@ -2,8 +2,9 @@
 
 
 #define SAMPLES_PER_PIXEL 1
-#define MAX_BOUNCES 10
+#define MAX_BOUNCES 5
 #define EPSILON 0.0001f
+#define SKY_COLOR vec3(0.0f, 0.0f, 0.0f)
 
 
 struct Ray
@@ -15,29 +16,31 @@ struct Ray
 struct RayPayload
 {
 	int materialIndex;
+	float t;
 	vec3 position;
 	vec3 normal;
 };
 
 struct Material
 {
-	vec3 albedo;
-	float roughness;
-	float emission;
+	vec4 albedo; // RGB = albedo color, A = rougness
+	vec4 emission; // RGB = emission color, A = strength
+	vec4 params; // R = metallic, GBA = reserved for future use
 };
 
-struct Sphere
+struct BVHNode
 {
-	vec3 origin;
-	float radius;
-	int materialIndex;
+	vec3 minBounds;
+	uint leftFirst;
+	vec3 maxBounds;
+	uint triCount;
 };
 
-struct Box
+struct BVHTriangle
 {
-	vec3 boxMin;
-	vec3 boxMax;
-	int materialIndex;
+	vec4 v0; // .w is material index
+	vec4 v1;
+	vec4 v2;
 };
 
 
@@ -46,39 +49,29 @@ in vec2 TexCoords;
 layout (location = 0) out vec4 FragColor;
 
 
+layout(std430, binding = 0) buffer ssbo4
+{
+	BVHNode b_BVHNodes[];
+};
+
+layout(std430, binding = 1) buffer ssbo1
+{
+    BVHTriangle b_BVHTriangles[];
+};
+
+layout(std430, binding = 2) buffer ssbo2
+{
+    Material b_Materials[];
+};
+
+
 uniform sampler2D u_ScreenTexture;
-uniform uint u_SamplesPerPixel;
 uniform uint u_AccumulationPasses;
 uniform vec2 u_Resolution;
 uniform uint u_FrameIndex;
 uniform vec3 u_CameraPosition;
 uniform mat4x4 u_CameraInverseProjection;
 uniform mat4x4 u_CameraInverseView;
-
-
-const Material MATERIALS[] = Material[]
-(
-	Material(vec3(1.0f, 0.0f, 0.0f), 1.0f, 0.0f),
-	Material(vec3(0.0f, 1.0f, 0.0f), 1.0f, 0.0f),
-	Material(vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.0f),
-	Material(vec3(1.0f, 1.0f, 1.0f), 0.0f, 0.0f),
-	Material(vec3(1.0f, 1.0f, 1.0f), 1.0f, 5.0f)
-);
-
-const Sphere SPHERES[] = Sphere[]
-(
-	Sphere(vec3(0, -4, 2), 3, 3)
-);
-
-const Box BOXES[] = Box[]
-(
-	Box(vec3(-7, -7, -7), vec3(-6, 7, 7), 0),
-	Box(vec3(6, -7, -7), vec3(7, 7, 7), 1),
-	Box(vec3(-7, -7, 7), vec3(7, 7, 8), 2),
-	Box(vec3(-7, 7, -7), vec3(7, 8, 7), 2),
-	Box(vec3(-7, -7, -7), vec3(7, -8, 7), 2),
-	Box(vec3(-1.5f, 5.75f, -1), vec3(1.5f, 6, 1), 4)
-);
 
 
 /**
@@ -119,174 +112,206 @@ vec3 randomOnUnitSphere(uint seed)
 	return normalize(randomVec3(seed, -1, 1));
 }
 
-vec3 randomOnHemisphere(uint seed, vec3 normal)
+vec3 cosineSampleHemisphere(uint seed, vec3 N)
 {
-	vec3 onUnitSphere = randomOnUnitSphere(seed);
+	float u1 = random01(seed);
+	float u2 = random01(seed + 1u);
 
-	return sign(dot(onUnitSphere, normal)) * onUnitSphere;
+	float r = sqrt(u1);
+	float phi = 6.2831853f * u2;
+
+	vec3 up = abs(N.z) < 0.999f ? vec3(0, 0, 1) : vec3(1, 0, 0);
+	vec3 T = normalize(cross(up, N));
+	vec3 B = cross(N, T);
+
+	return normalize(T * (r * cos(phi)) + B * (r * sin(phi)) + N * sqrt(max(0.0f, 1.0f - u1)));
+}
+
+vec3 sampleGGXHalfVector(uint seed, vec3 N, float alpha)
+{
+	float u1 = random01(seed);
+	float u2 = random01(seed + 1u);
+
+	float phi = 6.2831853f * u1;
+	float cosTheta = sqrt((1.0f - u2) / (1.0f + (alpha * alpha - 1.0f) * u2));
+	float sinTheta = sqrt(max(0.0f, 1.0f - cosTheta * cosTheta));
+
+	vec3 h = vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+
+	vec3 up = abs(N.z) < 0.999f ? vec3(0, 0, 1) : vec3(1, 0, 0);
+	vec3 T = normalize(cross(up, N));
+	vec3 B = cross(N, T);
+
+	return normalize(T * h.x + B * h.y + N * h.z);
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+	return F0 + (1.0f - F0) * pow(clamp(1.0f - cosTheta, 0.0f, 1.0f), 5.0f);
+}
+
+// Exact Smith G1 masking term for GGX
+float ggxSmithG1(float NoX, float alpha)
+{
+	float a2 = alpha * alpha;
+	return 2.0f * NoX / (NoX + sqrt(a2 + (1.0f - a2) * NoX * NoX));
 }
 
 
-RayPayload miss(Ray ray)
+vec2 intersectAABB(vec3 rayOrigin, vec3 rayInvDir, vec3 boxMin, vec3 boxMax)
 {
-	RayPayload payload;
-	payload.materialIndex = -1;
+    vec3 t0 = (boxMin - rayOrigin) * rayInvDir;
+    vec3 t1 = (boxMax - rayOrigin) * rayInvDir;
 
-	return payload;
+    vec3 tSmall = min(t0, t1);
+    vec3 tBig = max(t0, t1);
+
+    float tMin = max(max(tSmall.x, tSmall.y), tSmall.z);
+    float tMax = min(min(tBig.x, tBig.y), tBig.z);
+
+	// If tMax < 0, the box is completely behind the ray origin.
+    // If tMin > tMax, the ray missed the box entirely.
+    return vec2(tMin, tMax);
+};
+
+bool intersectTriangle(vec3 ro, vec3 rd, vec3 v0, vec3 v1, vec3 v2, out float t, out vec3 normal)
+{
+    const float eps = 1e-7;
+
+    // Find vectors for two edges sharing v0
+    vec3 edge1 = v1 - v0;
+    vec3 edge2 = v2 - v0;
+
+	vec3 ray_cross_edge2 = cross(rd, edge2);
+	float det = dot(edge1, ray_cross_edge2);
+
+	if (abs(det) < eps)
+	{
+		return false; // Ray is parallel to triangle plane
+	}
+
+	float inv_det = 1.0 / det;
+	vec3 s = ro - v0;
+	float u = inv_det * dot(s, ray_cross_edge2);
+
+	if (u < -eps || u - 1.0 > eps)
+	{
+		return false; // Ray passes outside edge2's bounds
+	}
+
+	vec3 s_cross_e1 = cross(s, edge1);
+    float v = inv_det * dot(rd, s_cross_e1);
+
+	if (v < -eps || u + v - 1.0 > eps)
+	{
+		return false; // Ray passes outside edge1's bounds
+	}
+
+	t = inv_det * dot(edge2, s_cross_e1);
+
+	if (t < eps)
+	{
+		return false; // Ray intersection is behind the ray origin
+	}
+
+    // Normal calculation. LH system.
+	normal = normalize(cross(edge2, edge1));
+
+	if (det > 0.0)
+    {
+        normal = -normal;
+    }
+
+	return true;
 }
 
-RayPayload closestHitSphere(Ray ray, float minT, int sphereIndex)
-{
-	RayPayload payload;
-	payload.materialIndex = SPHERES[sphereIndex].materialIndex;
-	payload.position = ray.origin + ray.dir * minT;
-	payload.normal = (payload.position - SPHERES[sphereIndex].origin) / SPHERES[sphereIndex].radius;
-
-	/**
-	 * Check for backfaces
-	 *
-	 * REF: https://raytracing.github.io/books/RayTracingInOneWeekend.html#surfacenormalsandmultipleobjects/frontfacesversusbackfaces
-	 * REF: https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/single-vs-double-sided-triangle-backface-culling.html
-	 */
-	if (dot(ray.dir, payload.normal) > 0)
-	{
-		payload.normal = -payload.normal;
-	}
-
-	return payload;
-}
-
-RayPayload closestHitBox(Ray ray, float minT, int boxIndex)
-{
-	RayPayload payload;
-	payload.materialIndex = BOXES[boxIndex].materialIndex;
-	payload.position = ray.origin + ray.dir * minT;
-
-	if (payload.position.x == min(BOXES[boxIndex].boxMin.x, BOXES[boxIndex].boxMax.x))
-	{
-		payload.normal = vec3(-1, 0, 0);
-	}
-	else if (payload.position.x == max(BOXES[boxIndex].boxMin.x, BOXES[boxIndex].boxMax.x))
-	{
-		payload.normal = vec3(1, 0, 0);
-	}
-	else if (payload.position.y == min(BOXES[boxIndex].boxMin.y, BOXES[boxIndex].boxMax.y))
-	{
-		payload.normal = vec3(0, -1, 0);
-	}
-	else if (payload.position.y == max(BOXES[boxIndex].boxMin.y, BOXES[boxIndex].boxMax.y))
-	{
-		payload.normal = vec3(0, 1, 0);
-	}
-	else if (payload.position.z == min(BOXES[boxIndex].boxMin.z, BOXES[boxIndex].boxMax.z))
-	{
-		payload.normal = vec3(0, 0, -1);
-	}
-	else if (payload.position.z == max(BOXES[boxIndex].boxMin.z, BOXES[boxIndex].boxMax.z))
-	{
-		payload.normal = vec3(0, 0, 1);
-	}
-
-	if (dot(ray.dir, payload.normal) > 0)
-	{
-		payload.normal = -payload.normal;
-	}
-
-	return payload;
-}
 
 RayPayload traceRay(Ray ray)
 {
-	float minTSphere = 99999999;
-	int sphereIndex = -1;
+	RayPayload payload;
+	payload.materialIndex = -1;
+	payload.t = 1e20f;
 
-	for (int i = 0; i < SPHERES.length(); i++)
+	vec3 invRayDir = 1.0f / ray.dir;
+
+	uint stack[32];
+	int stackPtr = 0;
+	stack[stackPtr++] = 0; // Start with root node
+
+	while (stackPtr > 0)
 	{
-		vec3 origin = ray.origin - SPHERES[i].origin;
+		uint nodeIndex = stack[--stackPtr];
+		BVHNode node = b_BVHNodes[nodeIndex];
 
-		float a = ray.dir.x * ray.dir.x + ray.dir.y * ray.dir.y + ray.dir.z * ray.dir.z;
-		float half_b = origin.x * ray.dir.x + origin.y * ray.dir.y + origin.z * ray.dir.z;
-		float c = origin.x * origin.x + origin.y * origin.y + origin.z * origin.z - SPHERES[i].radius * SPHERES[i].radius;
-
-		float discriminant = half_b * half_b - a * c;
-
-		if (discriminant < 0)
+		if (node.triCount > 0)
 		{
-			continue;
-		}
-
-		float t = (-half_b - sqrt(discriminant)) / a;
-
-		if (t > 0)
-		{
-			if (t < minTSphere)
+			for (uint i = 0; i < node.triCount; i++)
 			{
-				minTSphere = t;
-				sphereIndex = i;
+				uint triIndex = node.leftFirst + i;
+				vec3 v0 = b_BVHTriangles[triIndex].v0.xyz;
+				vec3 v1 = b_BVHTriangles[triIndex].v1.xyz;
+				vec3 v2 = b_BVHTriangles[triIndex].v2.xyz;
+
+				float tmp_t;
+				vec3 tmp_normal;
+
+				if (intersectTriangle(ray.origin, ray.dir, v0, v1, v2, tmp_t, tmp_normal))
+				{
+					if (tmp_t < payload.t)
+					{
+						payload.materialIndex = int(b_BVHTriangles[triIndex].v0.w);
+						payload.t = tmp_t;
+						payload.position = ray.origin + ray.dir * tmp_t;
+						payload.normal = tmp_normal;
+					}
+				}
 			}
 		}
 		else
 		{
-			t = (-half_b + sqrt(discriminant)) / a;
+			uint left = node.leftFirst;
+			uint right = node.leftFirst + 1;
 
-			if (t > 0)
+			vec2 hitLeftData = intersectAABB(ray.origin, invRayDir, b_BVHNodes[left].minBounds, b_BVHNodes[left].maxBounds);
+			vec2 hitRightData = intersectAABB(ray.origin, invRayDir, b_BVHNodes[right].minBounds, b_BVHNodes[right].maxBounds);
+
+			bool hitLeft = hitLeftData.y >= 0 && hitLeftData.x <= hitLeftData.y;
+			bool hitRight = hitRightData.y >= 0 && hitRightData.x <= hitRightData.y;
+
+			if (hitLeft && hitLeftData.x > payload.t)
 			{
-				if (t < minTSphere)
+				hitLeft = false; // No need to check this node if it's further than the closest hit so far
+			}
+			if (hitRight && hitRightData.x > payload.t)
+			{
+				hitRight = false; // No need to check this node if it's further than the closest hit so far
+			}
+
+			if (hitLeft && hitRight)
+			{
+				if (hitLeftData.x < hitRightData.x)
 				{
-					minTSphere = t;
-					sphereIndex = i;
+					stack[stackPtr++] = right; // Further
+					stack[stackPtr++] = left; // Closer
+				}
+				else
+				{
+					stack[stackPtr++] = left; // Further
+					stack[stackPtr++] = right; // Closer
 				}
 			}
-		}
-	}
-
-	float minTBox = 9999999;
-	int boxIndex = -1;
-
-	for (int i = 0; i < BOXES.length(); i++)
-	{
-		vec3 dirfrac = vec3(0, 0, 0);
-		dirfrac.x = 1.0f / ray.dir.x;
-		dirfrac.y = 1.0f / ray.dir.y;
-		dirfrac.z = 1.0f / ray.dir.z;
-
-		Box b = BOXES[i];
-
-		float t1 = (b.boxMin.x - ray.origin.x) * dirfrac.x;
-		float t2 = (b.boxMax.x - ray.origin.x) * dirfrac.x;
-		float t3 = (b.boxMin.y - ray.origin.y) * dirfrac.y;
-		float t4 = (b.boxMax.y - ray.origin.y) * dirfrac.y;
-		float t5 = (b.boxMin.z - ray.origin.z) * dirfrac.z;
-		float t6 = (b.boxMax.z - ray.origin.z) * dirfrac.z;
-
-		float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
-		float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
-
-		if (tmax >= 0 && tmin < tmax)
-		{
-			float t = tmin;
-
-			if (t < minTBox)
+			else if (hitLeft)
 			{
-				minTBox = t;
-				boxIndex = i;
+				stack[stackPtr++] = left;
+			} 
+			else if (hitRight)
+			{
+				stack[stackPtr++] = right;
 			}
 		}
 	}
 
-	if (sphereIndex == -1 && boxIndex == -1)
-	{
-		return miss(ray);
-	}
-
-	if (minTSphere < minTBox)
-	{
-		return closestHitSphere(ray, minTSphere, sphereIndex);
-	}
-	else
-	{
-		return closestHitBox(ray, minTBox, boxIndex);
-	}
+	return payload;
 }
 
 /**
@@ -310,33 +335,94 @@ vec3 rayGen(uint seed)
 	vec3 light = vec3(0, 0, 0);
 	vec3 contribution = vec3(1, 1, 1);
 
-	for (int i = 0; i < MAX_BOUNCES; i++)
+	for (int bounce = 0; bounce < MAX_BOUNCES; bounce++)
 	{
 		RayPayload payload = traceRay(Ray(startPos, direction));
 
-		seed += i;
+		seed += bounce;
 		seed = pcg_hash(seed);
 
 		if (payload.materialIndex < 0)
 		{
+			light += contribution * SKY_COLOR;
 			break;
 		}
 		else
 		{
-			Material mat = MATERIALS[payload.materialIndex];
+			Material mat = b_Materials[payload.materialIndex];
 
-			contribution *= mat.albedo;
-			light += mat.albedo * mat.emission;
+			vec3 albedo = mat.albedo.rgb;
+			float roughness = clamp(mat.albedo.a, 0.02f, 1.0f); // avoid degenerate mirror spikes
+			float metallic = mat.params.r;
+			vec3 emissionColor = mat.emission.rgb;
+			float emissionStrength = mat.emission.a;
 
-			seed += payload.materialIndex;
+			light += contribution * emissionColor * emissionStrength;
+
+			vec3 N = payload.normal;
+			vec3 V = -normalize(direction);
+			float NoV = max(dot(N, V), 1e-4f);
+
+			vec3 F0 = mix(vec3(0.04f), albedo, metallic); // Base reflectance at normal incidence. Dielectrics use ~0.04, metals use albedo color
+			vec3 Fr = fresnelSchlick(NoV, F0);
+			float pSpec = clamp(max(Fr.r, max(Fr.g, Fr.b)), 0.1f, 0.9f); // probability of sampling specular
+			float alpha = roughness * roughness;
+
+			seed = pcg_hash(seed + payload.materialIndex);
+
+			vec3 newDir;
+
+			if (random01(seed) < pSpec)
+			{
+				// Specular (GGX)
+				seed = pcg_hash(seed);
+				vec3 H = sampleGGXHalfVector(seed, N, alpha);
+				newDir = reflect(direction, H);
+
+				float NoL = dot(N, newDir);
+				if (NoL <= 0.0f)
+				{
+					break; // sample went below the surface -> contributes nothing
+				}
+
+				float NoH = max(dot(N, H), 1e-4f);
+				float VoH = max(dot(V, H), 1e-4f);
+				vec3 F = fresnelSchlick(VoH, F0);
+				float G = ggxSmithG1(NoV, alpha) * ggxSmithG1(NoL, alpha);
+
+				// weight = BRDF * NoL / pdf  (NDF sampling pdf cancels D)
+				contribution *= (F * G * VoH / (NoV * NoH)) / pSpec;
+			}
+			else
+			{
+				// Diffuse (lambertian)
+				seed = pcg_hash(seed);
+				newDir = cosineSampleHemisphere(seed, N);
+
+				// cosine pdf cancels the cosine term -> weight is just albedo
+				contribution *= albedo * (1.0f - metallic) / (1.0f - pSpec);
+			}
+
+			startPos = payload.position + N * EPSILON;
+			direction = newDir;
+		}
+
+		// Russian roulette termination
+		if (bounce > 3)
+		{
+			float p = max(contribution.r, max(contribution.g, contribution.b));
+
+			seed += 1;
 			seed = pcg_hash(seed);
 
-			startPos = payload.position + payload.normal * EPSILON;
-			direction = reflect(direction, payload.normal + mat.roughness * randomOnHemisphere(seed, payload.normal));
+			if (random01(seed) > p)
+			{
+				break;
+			}
 		}
 	}
 
-	return light * contribution;
+	return light;
 }
 
 

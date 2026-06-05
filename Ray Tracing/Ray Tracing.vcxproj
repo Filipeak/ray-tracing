@@ -92,8 +92,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;$(SolutionDir)$(ProjectName)\dependencies\spdlog;$(SolutionDir)$(ProjectName)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -110,8 +111,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;$(SolutionDir)$(ProjectName)\dependencies\spdlog;$(SolutionDir)$(ProjectName)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,8 +130,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;$(SolutionDir)$(ProjectName)\dependencies\spdlog;$(SolutionDir)$(ProjectName)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,8 +149,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\dependencies\glfw;$(SolutionDir)$(ProjectName)\dependencies\glm;$(SolutionDir)$(ProjectName)\dependencies\glad\include;$(SolutionDir)$(ProjectName)\dependencies\imgui;$(SolutionDir)$(ProjectName)\dependencies\spdlog;$(SolutionDir)$(ProjectName)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,24 +170,38 @@
     <ClCompile Include="dependencies\imgui\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="dependencies\imgui\imgui\imgui_tables.cpp" />
     <ClCompile Include="dependencies\imgui\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\Core\EngineAssert.cpp" />
     <ClCompile Include="src\GUI\ConfigWindow.cpp" />
     <ClCompile Include="src\GUI\GUI.cpp" />
     <ClCompile Include="src\GUI\StatsWindow.cpp" />
-    <ClCompile Include="src\Core\main.cpp" />
+    <ClCompile Include="src\main.cpp" />
     <ClCompile Include="dependencies\glad\src\glad.c" />
     <ClCompile Include="dependencies\glm\glm\detail\glm.cpp" />
-    <ClCompile Include="src\Renderer\Bloom.cpp" />
-    <ClCompile Include="src\Renderer\Camera.cpp" />
-    <ClCompile Include="src\Renderer\Framebuffer.cpp" />
-    <ClCompile Include="src\Renderer\IndexBuffer.cpp" />
-    <ClCompile Include="src\Renderer\GLLog.cpp" />
-    <ClCompile Include="src\Renderer\QuadRenderer.cpp" />
-    <ClCompile Include="src\Renderer\RTRenderer.cpp" />
-    <ClCompile Include="src\Renderer\Shader.cpp" />
-    <ClCompile Include="src\Renderer\Texture.cpp" />
-    <ClCompile Include="src\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Renderer\VertexBuffer.cpp" />
-    <ClCompile Include="src\Renderer\Window.cpp" />
+    <ClCompile Include="src\Platform\Input.cpp" />
+    <ClCompile Include="src\Platform\Time.cpp" />
+    <ClCompile Include="src\Renderer\RenderUtils\GPUScene.cpp" />
+    <ClCompile Include="src\Renderer\Passes\BloomPass.cpp" />
+    <ClCompile Include="src\Renderer\RenderUtils\BVHBuilder.cpp" />
+    <ClCompile Include="src\Renderer\Passes\BVHDebugPass.cpp" />
+    <ClCompile Include="src\Renderer\Passes\RayTracePass.cpp" />
+    <ClCompile Include="src\Renderer\Passes\ToneMapPass.cpp" />
+    <ClCompile Include="src\Renderer\RenderPipeline.cpp" />
+    <ClCompile Include="src\Scene\Camera\Camera.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\Framebuffer.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\IndexBuffer.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\GLLog.cpp" />
+    <ClCompile Include="src\Scene\CornellBox.cpp" />
+    <ClCompile Include="src\Scene\Camera\FlyCameraController.cpp" />
+    <ClCompile Include="src\Scene\Mesh.cpp" />
+    <ClCompile Include="src\Scene\Scene.cpp" />
+    <ClCompile Include="src\Utils\MeshLoader.cpp" />
+    <ClCompile Include="src\Renderer\RenderUtils\QuadRenderer.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\Shader.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\ShaderStorageBuffer.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\Texture.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\VertexArray.cpp" />
+    <ClCompile Include="src\Renderer\Abstractions\VertexBuffer.cpp" />
+    <ClCompile Include="src\Platform\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dependencies\glad\include\glad\glad.h" />
@@ -482,24 +500,45 @@
     <ClInclude Include="dependencies\imgui\imgui\imstb_textedit.h" />
     <ClInclude Include="dependencies\imgui\imgui\imstb_truetype.h" />
     <ClInclude Include="src\Core\Config.h" />
+    <ClInclude Include="src\Core\EngineAssert.h" />
+    <ClInclude Include="src\Core\Logger.h" />
     <ClInclude Include="src\GUI\ConfigWindow.h" />
     <ClInclude Include="src\GUI\GUI.h" />
-    <ClInclude Include="src\GUI\GUIWindow.h" />
+    <ClInclude Include="src\GUI\IGUIWindow.h" />
     <ClInclude Include="src\GUI\StatsWindow.h" />
-    <ClInclude Include="src\Renderer\Bloom.h" />
-    <ClInclude Include="src\Renderer\Camera.h" />
-    <ClInclude Include="src\Renderer\Framebuffer.h" />
-    <ClInclude Include="src\Renderer\IndexBuffer.h" />
-    <ClInclude Include="src\Renderer\GLLog.h" />
-    <ClInclude Include="src\Renderer\QuadRenderer.h" />
-    <ClInclude Include="src\Renderer\RTRenderer.h" />
-    <ClInclude Include="src\Renderer\Shader.h" />
-    <ClInclude Include="src\Renderer\Texture.h" />
-    <ClInclude Include="src\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Renderer\VertexBuffer.h" />
-    <ClInclude Include="src\Renderer\Window.h" />
+    <ClInclude Include="src\Platform\Input.h" />
+    <ClInclude Include="src\Platform\KeyCode.h" />
+    <ClInclude Include="src\Platform\Time.h" />
+    <ClInclude Include="src\Renderer\RenderUtils\GPUScene.h" />
+    <ClInclude Include="src\Renderer\Passes\BloomPass.h" />
+    <ClInclude Include="src\Renderer\Passes\RenderContext.h" />
+    <ClInclude Include="src\Renderer\RenderUtils\BVHBuilder.h" />
+    <ClInclude Include="src\Renderer\Passes\BVHDebugPass.h" />
+    <ClInclude Include="src\Renderer\Passes\RayTracePass.h" />
+    <ClInclude Include="src\Renderer\Passes\ToneMapPass.h" />
+    <ClInclude Include="src\Renderer\RenderPipeline.h" />
+    <ClInclude Include="src\Scene\Camera\Camera.h" />
+    <ClInclude Include="src\Renderer\Abstractions\Framebuffer.h" />
+    <ClInclude Include="src\Renderer\Abstractions\IndexBuffer.h" />
+    <ClInclude Include="src\Renderer\Abstractions\GLLog.h" />
+    <ClInclude Include="src\Scene\Camera\ICameraController.h" />
+    <ClInclude Include="src\Scene\CornellBox.h" />
+    <ClInclude Include="src\Scene\Camera\FlyCameraController.h" />
+    <ClInclude Include="src\Scene\Material.h" />
+    <ClInclude Include="src\Scene\Mesh.h" />
+    <ClInclude Include="src\Scene\Scene.h" />
+    <ClInclude Include="src\Utils\MeshLoader.h" />
+    <ClInclude Include="src\Renderer\RenderUtils\QuadRenderer.h" />
+    <ClInclude Include="src\Renderer\Abstractions\Shader.h" />
+    <ClInclude Include="src\Renderer\Abstractions\ShaderStorageBuffer.h" />
+    <ClInclude Include="src\Renderer\Abstractions\Texture.h" />
+    <ClInclude Include="src\Renderer\Abstractions\VertexArray.h" />
+    <ClInclude Include="src\Renderer\Abstractions\VertexBuffer.h" />
+    <ClInclude Include="src\Platform\Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\debug.frag" />
+    <None Include="shaders\debug.vert" />
     <None Include="shaders\bloom_downsample.frag" />
     <None Include="shaders\bloom_upsample.frag" />
     <None Include="shaders\screen.frag" />

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <memory>
 #include <vector>
-#include "GUIWindow.h"
-#include "../Renderer/Window.h"
+#include "IGUIWindow.h"
+#include "Platform/Window.h"
 
 class GUI
 {
@@ -10,12 +11,9 @@ public:
 	GUI(const Window& window);
 	~GUI();
 
-	void AddWindow(GUIWindow* guiWindow);
-	void Begin();
-	void End();
-
-private:
+	void AddWindow(std::unique_ptr<IGUIWindow> guiWindow);
 	void Update();
 
-	std::vector<GUIWindow*> m_GUIWindows;
+private:
+	std::vector<std::unique_ptr<IGUIWindow>> m_GUIWindows;
 };

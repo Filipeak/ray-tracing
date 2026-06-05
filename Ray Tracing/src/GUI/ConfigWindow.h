@@ -1,21 +1,25 @@
 #pragma once
 
-#include "GUIWindow.h"
-#include "../Core/Config.h"
-#include "../Renderer/Window.h"
-#include "../Renderer/RTRenderer.h"
-#include "../Renderer/Camera.h"
+#include "IGUIWindow.h"
+#include "Core/Config.h"
+#include "Scene/Camera/Camera.h"
+#include "Scene/Camera/FlyCameraController.h"
 
-class ConfigWindow : public GUIWindow
+class ConfigWindow : public IGUIWindow
 {
 public:
-	ConfigWindow(ConfigData& configData, Window& window, RTRenderer& renderer, Camera& camera) : m_ConfigData(configData), m_Window(window), m_Renderer(renderer), m_Camera(camera) {}
+	ConfigWindow(WindowConfig& windowConfig, RayTracingConfig& rayTraceConfig, BloomConfig& bloomConfig, ToneMapConfig& toneMapConfig, FlyCameraSettings& cameraSettings, CameraProjectionSettings& projectionSettings)
+		: m_WindowConfig(windowConfig), m_RayTracingConfig(rayTraceConfig), m_BloomConfig(bloomConfig), m_ToneMapConfig(toneMapConfig), m_CameraSettings(cameraSettings), m_ProjectionSettings(projectionSettings)
+	{
+	}
 
 	void Draw();
 
 private:
-	ConfigData& m_ConfigData;
-	Window& m_Window;
-	RTRenderer& m_Renderer;
-	Camera& m_Camera;
+	WindowConfig& m_WindowConfig;
+	RayTracingConfig& m_RayTracingConfig;
+	BloomConfig& m_BloomConfig;
+	ToneMapConfig& m_ToneMapConfig;
+	FlyCameraSettings& m_CameraSettings;
+	CameraProjectionSettings& m_ProjectionSettings;
 };

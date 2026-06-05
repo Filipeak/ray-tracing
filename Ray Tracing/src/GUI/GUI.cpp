@@ -1,4 +1,5 @@
 #include "GUI.h"
+#include "Core/Logger.h"
 #include "StatsWindow.h"
 #include "ConfigWindow.h"
 #include "imgui/imgui.h"
@@ -8,7 +9,7 @@
 GUI::GUI(const Window& window)
 {
 	IMGUI_CHECKVERSION();
-
+	
 	ImGui::CreateContext();
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -19,44 +20,33 @@ GUI::GUI(const Window& window)
 
 	ImGui_ImplGlfw_InitForOpenGL(window.GetWindowHandle(), true);
 	ImGui_ImplOpenGL3_Init("#version 430");
+
+	spdlog::debug("GUI initialized successfully");
 }
 
 GUI::~GUI()
 {
-	for (size_t i = 0; i < m_GUIWindows.size(); i++)
-	{
-		delete m_GUIWindows[i];
-	}
-
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
 
-void GUI::AddWindow(GUIWindow* guiWindow)
+void GUI::AddWindow(std::unique_ptr<IGUIWindow> guiWindow)
 {
-	m_GUIWindows.emplace_back(guiWindow);
+	m_GUIWindows.push_back(std::move(guiWindow));
 }
 
-void GUI::Begin()
+void GUI::Update()
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	Update();
-}
-
-void GUI::End()
-{
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
-void GUI::Update()
-{
 	for (size_t i = 0; i < m_GUIWindows.size(); i++)
 	{
 		m_GUIWindows[i]->Draw();
 	}
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

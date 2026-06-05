@@ -1,16 +1,37 @@
 #pragma once
 
-struct ConfigData
+struct WindowConfig
 {
-	bool vsync = false;
-	bool accumulate = true;
-	float hdrExposure = 1.0f;
-	float screenGamma = 2.2f;
-	bool bloom = true;
-	int bloomMipChains = 5;
-	float bloomStrength = 0.05f;
-	float bloomFilterRadius = 0.005f;
-	float cameraSpeed = 7.0f;
-	float cameraSens = 3.5f;
-	float cameraFOV = 70.0f;
+	bool vsync;
+};
+
+struct CameraProjectionSettings
+{
+	float fov;
+	float nearPlane;
+	float farPlane;
+};
+
+struct RayTracingConfig
+{
+	bool accumulate;
+};
+
+struct BloomConfig
+{
+	bool enabled;
+	int mipChainLength;
+	float filterRadius;
+	float strength;
+};
+
+struct ToneMapConfig
+{
+	float exposure;
+	float gamma;
+};
+
+struct BVHDebugConfig
+{
+	bool enabled;
 };
