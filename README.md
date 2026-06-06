@@ -14,6 +14,10 @@ Earlier version, before mesh support and the physically based material model:
 
 ![Earlier render](assets/Preview1.png)
 
+BVH debug view:
+
+![BVH debug view](assets/Preview3.png)
+
 ## Features
 
 - **Path tracing** of arbitrary triangle meshes, fully on the GPU
